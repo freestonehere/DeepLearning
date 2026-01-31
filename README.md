@@ -1,5 +1,10 @@
 ## 一、README
-### （一）、`limu` 环境
+### （一）、代码
+[d2l - 普通 .py 版本的代码（非 Jupyter）](https://github.com/Miraclelucy/dive_into_deep_learning)
+
+<br><br>
+
+### （二）、`limu` 环境
 #### 1、VS code 编辑器
 1. color theme
    1. 原本是 Dark Modern (Default Dark Modern)
@@ -44,7 +49,7 @@ pip install d2l==0.17.0
 
 <br><br>
 
-### （二）、快速上手 Jupyter
+### （三）、快速上手 Jupyter
 [同济子豪兄 - 快速上手 Jupyter Notebook](https://www.bilibili.com/video/BV1Q4411H7fJ/?spm_id_from=333.337.search-card.all.click&vd_source=774b39ad34e11aca38975d06f9a32cdb)
 
 <br><br><br>
