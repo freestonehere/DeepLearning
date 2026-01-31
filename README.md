@@ -16,8 +16,9 @@
    2. 现在是 Islands Light
 2. Comment color （注释的颜色）
    1. 在 color-language default 中
-      1. 6AAB73（绿色）
-      2. 取消斜体（Italic）
+      1. 00AA00（Python IDLE 默认的绿色，感觉比较好看）
+      2. 6AAB73（绿色）
+      3. 取消斜体（Italic）
 
 #### 3、IDEA 编辑器
 1. Theme
