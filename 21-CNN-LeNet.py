@@ -4,6 +4,7 @@ from d2l import torch as d2l
 from tools.ch3 import load_data_fashion_mnist # 加载 FashionMNIST 数据集
 from tools import Animator # 用于绘制动画
 import matplotlib.pyplot as plt # 用于画图
+from datetime import datetime
 
 '''定义 LeNet 卷积模型'''
 net = nn.Sequential(
@@ -97,6 +98,13 @@ def train_ch6(net, train_iter, test_iter, num_epochs, lr, device):
     
 
 lr, num_epochs = 0.9, 10
+starttime = datetime.now() 
+print(starttime) # 打印当前时间
+
 train_ch6(net, train_iter, test_iter, num_epochs, lr, d2l.try_gpu())
+
+endtime = datetime.now()
+print(endtime)
+print(endtime-starttime)
 
 plt.show()
