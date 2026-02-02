@@ -142,6 +142,7 @@ def corr2d_multi_in_out(X, K):
     # 迭代 “K” 的第 0 个维度，每次都对输入 “X” 执行互相关运算。
     # 最后将所有结果都叠加在一起
     # 先进来的在前面
+    # ⇒ 卷积核的第一个维度和输出的通道数是相同的
     return torch.stack([corr2d_multi_in(X, k) for k in K], 0)
 
 '''构造新的卷积核张量, 适配多输出通道'''
