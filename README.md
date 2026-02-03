@@ -2,6 +2,54 @@
 ### （一）、代码
 [d2l - 普通 .py 版本的代码（非 Jupyter）](https://github.com/Miraclelucy/dive_into_deep_learning)
 
+#### 1、训练 `AlexNet` 的时候，改了两处 `d2l` 包中的内容
+```python
+from d2l import torch as d2l
+# 正是由于上面的代码，所以打开 d2l 文件后，实际上是 d2l 文件夹中的 torch
+```
+
+##### (1)、多线程
+1. 因为 Windows 不能跑 Pytorch 的多线程，所以 class DataLoader 不能使用多线程
+   1. 其他没有修改
+2. 下面是修改后的代码
+
+```python
+# Defined in file: ./chapter_linear-networks/image-classification-dataset.md
+def get_dataloader_workers():
+    """Use 4 processes to read the data."""
+    # return 4
+    return 0 if sys.platform.startswith('win') else 4
+```
+
+##### (2)、加载数据集
+1. **紧跟在 `dataloader` 后面的 `load_data_fashion_mnist` 函数**
+   1. 修改了储存数据集的文件夹
+   2. 而且，由于网络状态，也修改了 download 的 default value
+   3. 其他没有修改
+2. 下面是修改后的代码
+
+```python
+# Defined in file: ./chapter_linear-networks/image-classification-dataset.md
+def load_data_fashion_mnist(batch_size, resize=None):
+    """Download the Fashion-MNIST dataset and then load it into memory."""
+    trans = [transforms.ToTensor()]
+    if resize:
+        trans.insert(0, transforms.Resize(resize))
+    trans = transforms.Compose(trans)
+    mnist_train = torchvision.datasets.FashionMNIST(root="data",
+                                                    train=True,
+                                                    transform=trans,
+                                                    download=False)
+    mnist_test = torchvision.datasets.FashionMNIST(root="data",
+                                                   train=False,
+                                                   transform=trans,
+                                                   download=False)
+    return (data.DataLoader(mnist_train, batch_size, shuffle=True,
+                            num_workers=get_dataloader_workers()),
+            data.DataLoader(mnist_test, batch_size, shuffle=False,
+                            num_workers=get_dataloader_workers()))
+```
+
 <br><br>
 
 ### （二）、`limu` 环境
