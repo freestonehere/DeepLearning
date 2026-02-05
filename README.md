@@ -114,7 +114,10 @@ data
 |   （ 通过 https://pan.baidu.com/s/1Byx4c1PCYKsuIRpYkEFn1g?pwd=x0j9 下载 ）
 ├── 15-02-california-house-prices
 |   （ 通过 https://pan.baidu.com/s/12aRIWIGSCHJd_IJvFRtD9A?pwd=6666 下载 ）
+├── cifar-10-batches-py （ 通过 https://zhuanlan.zhihu.com/p/129078357 下载 ）
 ├── FashionMNIST（ 没招了，只能通过官网下载 ）
+├── img
+|   └── cat1.jpg（ 通过 https://github.com/d2l-ai/d2l-zh/blob/master/img/cat1.jpg 下载 ）
 ├── kaggle_house_pred_test.csv （ 通过 15-combine-01.py 代码下载 ）
 └── kaggle_house_pred_train.csv （ 通过 15-combine-01.py 代码下载 ）
 ```
