@@ -114,6 +114,7 @@ data
 |   （ 通过 https://pan.baidu.com/s/1Byx4c1PCYKsuIRpYkEFn1g?pwd=x0j9 下载 ）
 ├── 15-02-california-house-prices
 |   （ 通过 https://pan.baidu.com/s/12aRIWIGSCHJd_IJvFRtD9A?pwd=6666 下载 ）
+├── banana-detection （ 通过 32-ObjectDetect-data.py 代码下载 ）
 ├── cifar-10-batches-py （ 通过 https://zhuanlan.zhihu.com/p/129078357 下载 ）
 ├── FashionMNIST（ 没招了，只能通过官网下载 ）
 ├── hotdog （ 通过 30-fine-tune.py 代码下载 ）
