@@ -119,7 +119,8 @@ data
 ├── FashionMNIST（ 没招了，只能通过官网下载 ）
 ├── hotdog （ 通过 30-fine-tune.py 代码下载 ）
 ├── img
-|   └── cat1.jpg（ 通过 https://github.com/d2l-ai/d2l-zh/blob/master/img/cat1.jpg 下载 ）
+|   ├── catdog.jpg（通过 https://raw.githubusercontent.com/d2l-ai/d2l-en/master/img/catdog.jpg）
+|   └── cat1.jpg（通过 https://github.com/d2l-ai/d2l-zh/blob/master/img/cat1.jpg 下载）
 ├── kaggle_house_pred_test.csv （ 通过 15-combine-01.py 代码下载 ）
 └── kaggle_house_pred_train.csv （ 通过 15-combine-01.py 代码下载 ）
 ```
