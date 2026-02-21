@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 from d2l import torch as d2l
 from tools import Animator
 from torch import nn
+import torch
+from tools.cache_load_datasets import *
+import pandas as pd
+import torchvision
 
 # 设置 matplotlib 交互式后端（解决 PyCharm 静态渲染问题）
 plt.switch_backend('TkAgg')
@@ -76,3 +80,54 @@ def train_ch13(net, train_iter, test_iter, loss, trainer, num_epochs,
           f'{metric[1] / metric[3]:.3f}, test acc {test_acc:.3f}')
     print(f'{metric[2] * num_epochs / timer.sum():.1f} examples/sec on '
           f'{str(devices)}')
+
+#@save
+DATA_HUB['banana-detection'] = (
+    d2l.DATA_URL + 'banana-detection.zip',
+    '5de26c8fce5ccdea9f91267273464dc968d20d72')
+
+#@save
+def read_data_bananas(is_train=True):
+    """读取香蕉检测数据集中的图像和标签"""
+    data_dir = download_extract('banana-detection')
+    # 训练就用 bananas_train，推理就用 bananas_val
+    csv_fname = os.path.join(data_dir, 'bananas_train' if is_train
+                             else 'bananas_val', 'label.csv')
+    csv_data = pd.read_csv(csv_fname)
+    csv_data = csv_data.set_index('img_name')
+    images, targets = [], []
+    # 下面这个 for loop 很简洁，熟悉这种写法
+    for img_name, target in csv_data.iterrows():
+        images.append(torchvision.io.read_image(
+            os.path.join(data_dir, 'bananas_train' if is_train else
+                         'bananas_val', 'images', f'{img_name}')))
+        # 这里返回的 images 形状是 (C, H, W); 即 (3, H, W)
+        # 这里的target包含（类别，左上角x，左上角y，右下角x，右下角y），
+        # 其中所有图像都具有相同的香蕉类（索引为0）
+        targets.append(list(target))
+    return images, torch.tensor(targets).unsqueeze(1) / 256
+    # targets 张量形状是 (len(list), 5); targets.unsqueeze(1) 形状为 (len(list), 1, 5)
+
+#@save
+class BananasDataset(torch.utils.data.Dataset):
+    """一个用于加载香蕉检测数据集的自定义数据集"""
+    def __init__(self, is_train):
+        self.features, self.labels = read_data_bananas(is_train)
+        print('read ' + str(len(self.features)) + (f' training examples' if
+              is_train else f' validation examples'))
+
+    def __getitem__(self, idx):
+        return (self.features[idx].float(), self.labels[idx])
+
+    def __len__(self):
+        return len(self.features)
+    
+#@save
+def load_data_bananas(batch_size):
+    """加载香蕉检测数据集"""
+    train_iter = torch.utils.data.DataLoader(BananasDataset(is_train=True),
+                                             batch_size, shuffle=True)
+    val_iter = torch.utils.data.DataLoader(BananasDataset(is_train=False),
+                                           batch_size)
+    return train_iter, val_iter
+
