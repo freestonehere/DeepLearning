@@ -88,8 +88,73 @@ flowchart TD
   - **总结**：通过张量形状，确实可以**反推**出来上面的结论。但是直观上，我并不太理解。也许这根本就不是我能**直观理解**的问题！
 
 1. 这里训练的参数实际上是 **卷积层中的参数** 和 **`BN` 层中的参数**
-2. PyTorch 中标准的张量形状就是 `(batch_size, channels, h, w)`
+2. **勘误**：`bbox_preds` 预测的 **不是锚框坐标本身**，而是 **偏移**。
+   1. 但是这里的 **偏移** 不是【预测锚框 和 真实边缘框 之间的偏移程度】，而是【预测锚框的两角 到 已知中心点 之间的偏移】 ![解释偏移](myPic/35-SSD算法实现/01-解释偏移.svg)
+   2. 注意 `bbox_preds` 张量形状是 `(batch_size, num_anchors_per_pixel * 4 * h * w)`
+3. PyTorch 中标准的张量形状就是 `(batch_size, channels, h, w)`
    1. 因此，PyTorch 中的 **批量** 指的就是 **图片数量**！
+4. 分类问题用交叉熵损失函数，回归问题用 `L1` 绝对误差损失函数
+   1. **类别预测** 是分类问题，所以用交叉熵损失函数
+   2. **锚框预测** 是回归问题，所以用 `L1` 损失函数
+5. 为什么**锚框预测**要用 `L1Loss` 而不是 `L2`？
+   1. 因为用 L2 时梯度下降会优先去缩减差的特别远的锚框，但这些我们往往都不关心（因为，我生成了特别多的锚框，如果你某个锚框和真实框差距过大了的话，那么我直接就**不关心这个锚框了**！）
+   2. 意思就是：我有这么多的锚框可以选择，我非得看你吗？我选一个更容易拟合的锚框不好吗！🙄
+6. 多个 loss 直接相加，如果这几个 loss 之间的数量级差别很大的话，那么必然会导致某一个 loss 主导整个 loss
+   1. 为了避免这种情况，可以在使用之前先打印一下各个 loss 的值，看一看是否在同一个数量级
+   2. 如果真的不在同一个数量级的话，那就加权重嘛！
+7. 关于多尺度锚框的问题：
+   1. 由于多尺度的锚框是基于 **多尺度的特征图** 产生的，不是基于原图产生的！
+   2. 但是损失函数 **却** 直接传入 **基于多尺度特征图的锚框 `bbox_preds`** 和 **基于原图的真实框`bbox_labels`**
+   3. 这两者是如何统一起来的呢？
+   4. **答：** 关键在于 `multibox_prior(data, sizes, ratios)` 函数中，`data` 本身没有归一化，仍然是 1 个像素为 1 个单位。
+      1. 所以【锚框在 feature map 中的占比】和【在原始图片中的占比】基本相同！
+      2. 因此，**多尺度锚框坐标** 也可以直接和 **原始图片中的锚框坐标** 做损失函数！
+        ```python
+        for epoch in range(num_epochs):
+            # 训练精确度的和，训练精确度的和中的示例数
+            # 绝对误差的和，绝对误差的和中的示例数
+            metric = d2l.Accumulator(4)
+            net.train()
+            for features, target in train_iter:
+                timer.start()
+                trainer.zero_grad() # 梯度清零是为了防止参数更新时发生错误
+                X, Y = features.to(device), target.to(device)
+                # 生成多尺度的锚框，为每个锚框预测类别和偏移量
+                # （多尺度锚框的本质是多尺度特征值）
+                anchors, cls_preds, bbox_preds = net(X)
+                # 为每个锚框标注类别和偏移量
+                bbox_labels, bbox_masks, cls_labels = d2l.multibox_target(anchors, Y)
+                # 根据类别和偏移量的预测和标注值计算损失函数
+                l = calc_loss(cls_preds, cls_labels, bbox_preds, bbox_labels,
+                            bbox_masks)
+                l.mean().backward() # l 张量形状是 (batch_size)
+                trainer.step()
+                metric.add(cls_eval(cls_preds, cls_labels), cls_labels.numel(),
+                        bbox_eval(bbox_preds, bbox_labels, bbox_masks),
+                        bbox_labels.numel())
+            cls_err, bbox_mae = 1 - metric[0] / metric[1], metric[2] / metric[3]
+            animator.add(epoch + 1, (cls_err, bbox_mae))
+        ```
+      - 查看 `train_iter` 迭代器返回的 `features, target` 的形状
+         1. 明确：`features` 是 **输入图片**，`target` 是 **标签**
+         2. 其中 `5 = 1（类别标签）+ 4（边缘框坐标）`
+         3. 有了这些以后，理解上面的训练代码就不困难了！
+            ```python
+            '''获取 batch 的形状'''
+            batch_size, edge_size = 32, 256
+            train_iter, _ = load_data_bananas(batch_size)
+            batch = next(iter(train_iter)) # 获取训练迭代器的第一个小批量
+            print(f'batch[0].shape: {batch[0].shape}\n batch[1].shape: {batch[1].shape}')
+            for features, target in train_iter:
+                print(f'features.shape: {features.shape}\n target.shape: {target.shape}')
+                break
+
+            '''下面是输出结果'''
+            batch[0].shape: torch.Size([32, 3, 256, 256])
+            batch[1].shape: torch.Size([32, 1, 5])
+            features.shape: torch.Size([32, 3, 256, 256])
+            target.shape: torch.Size([32, 1, 5])
+            ```
 
 <br><br>
 

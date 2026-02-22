@@ -60,8 +60,10 @@ def load_data_bananas(batch_size):
 batch_size, edge_size = 32, 256
 train_iter, _ = load_data_bananas(batch_size)
 batch = next(iter(train_iter)) # 获取训练迭代器的第一个小批量
-print(f'batch[0].shape: {batch[0].shape}, batch[1].shape: {batch[1].shape}')
-
+print(f'batch[0].shape: {batch[0].shape}\nbatch[1].shape: {batch[1].shape}')
+for features, target in train_iter:
+    print(f'features.shape: {features.shape}\ntarget.shape: {target.shape}')
+    break
 
 '''展示图片'''
 imgs = (batch[0][0:10].permute(0, 2, 3, 1)) / 255
