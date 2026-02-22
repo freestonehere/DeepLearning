@@ -403,10 +403,7 @@ class torch.nn.CrossEntropyLoss(
       2. $$ℓ(x,y)=L=\{l_1,…,l_N\}^{T}, ~ ~ l_n=−w_{y_n}log {exp(x_{n,y_n}) \over \sum_{c=1}^{C}exp(x_{n,c})​}$$
          1. 分母是**按行求和**
          2. 分子是按 `(行, 列)` 索引**单个元素**
-   2. 
-   $$
-   ℓ(x,y)= \begin{cases} \sum_{n=1}^{N}{1 \over \sum_{n=1}^{N} w_n } ℓ_n ~ &\text{if reduction=\sf{'mean'}} \\ \sum_{n=1}^{N} ℓ_n ~ &\text{if reduction=\sf{'sum'}} \end{cases}
-   $$
+   2. $$ℓ(x,y)= \begin{cases} \sum_{n=1}^{N}{1 \over \sum_{n=1}^{N} w_n } ℓ_n ~ &\text{if reduction={'mean'}} \\ \sum_{n=1}^{N} ℓ_n ~ &\text{if reduction={'sum'}} \end{cases}$$
       1. `loss` 被压缩为标量（**一个实数**）
 
 ##### (3)、CELoss 就学到这里吧，再高深的东西，以后遇到再学！
