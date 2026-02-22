@@ -105,6 +105,8 @@ def blk_forward(X, blk, size, ratio, cls_predictor, bbox_predictor):
     # 返回：输出特征图，锚框，类别预测，边缘框预测
     # 而且，返回的锚框就是开始的时候画的锚框（没有经过 NMS 抑制！）
     # anchors 张量形状 (1, num_anchors_per_pixel * num_piixels, 4)
+    # X 在尺度上经过变换后，得到 Y
+    # Y 经过【类别预测】和【边缘框预测】，得到具有【特殊通道信息】的输出图（也就是 cls_preds 和 bbox_preds）
     
 sizes = [[0.2, 0.272], [0.37, 0.447], [0.54, 0.619], [0.71, 0.79],
          [0.88, 0.961]]
@@ -124,7 +126,7 @@ class TinySSD(nn.Module):
                                                     num_anchors, num_classes))
             setattr(self, f'bbox_{i}', bbox_predictor(idx_to_in_channels[i],
                                                       num_anchors))
-        '''从这段代码可以看出：一个小型 SSD 共有 5 个 blk；
+        '''从这段代码可以看出：一个小型 SSD 网络共有 5 个 blk；
         每个 blk[i] 都有：基础网络 → 宽高减半块 → 最大池化层。
         然后每个 blk[i] 都要进行【类别预测】和【边缘框预测】。'''
 

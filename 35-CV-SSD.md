@@ -45,6 +45,32 @@ class err 3.26e-03, bbox mae 3.16e-03
 6691.3 examples/sec on cuda:0
 ```
 ### （一）、理解代码
+```mermaid
+flowchart TD
+    A[输入图像（32,3,256,256）] --> B[模型前向传播]
+    B --> C[生成锚框 + 类别预测 + 边界框预测 <br> 生成 anchors + cls_preds + bbox_preds <br>（类别预测和边界框预测的信息都存储在【通道】中）]
+    D[真实标注（32,1,5）] --> E[multibox_target 匹配锚框]
+    E --> F[生成 cls_labels + bbox_labels + bbox_masks]
+    C --> G[calc_loss 计算总损失<br>① 先对 cls_preds 做 softmax 操作，然后再和 cls_labels 进行交叉熵损失函数计算<br>② 直接对 bbox_preds 和 bbox_lables 做 L1 绝对损失函数计算即可]
+    F --> G
+    G --> H[反向传播计算梯度]
+    H --> I[SGD 更新模型参数]
+    I --> J[更新评价指标]
+    J --> K[可视化训练曲线]
+```
+- 如何理解 `（类别预测和边界框预测的信息都存储在【通道】中）`？
+  - 因为你 **卷积层的输出通道数** 决定的！
+    - `cls_predictor` 卷积层输出的 `cls_preds` 张量形状是 `(batch_size, num_anchors_per_pixel * (num_classes+1), h, w`
+    - `bbox_predictor` 卷积层输出的 `bbox_preds` 张量形状是 `(batch_size, num_anchors_per_pixel * 4, h, w)`
+    - **这 2 个张量** 又在 `TinySSD` 网络的 `forward` 函数中经过 `reshape`，变为 `cls_preds (batch_size, num_anchors_per_pixel * h * w, num_class+1)` 和 `bbox_preds (batch_size, num_anchors_per_pixel * 4 * h * w)`
+  - ⇒ 那么从 **张量形状** 来看，`bbox_preds` 存的一定就是 **锚框预测坐标本身**，`cls_preds` 存的一定就是 **类别预测信息本身**！
+    - 另外，多提一句：【`cls_preds` 存的是类别信息本身】其实比较容易理解。
+    - 因为之前【普通 CNN 网络】都是【图片分类模型】，这些网络的【类别信息】就是存储在 **通道** 中的！通过 **类比** 就很容易理解了！
+  - **通道用处** 果然很多
+    - **图片分类模型** 中，**通道** 用于存储【类别信息】
+    - **基于锚框的目标检测模型** 中，**通道** 用于存储【类别预测信息】和【锚框预测坐标】
+  - **总结**：通过张量形状，确实可以**反推**出来上面的结论。但是直观上，我并不太理解。也许这根本就不是我能**直观理解**的问题！
+
 1. 这里训练的参数实际上是 **卷积层中的参数** 和 **`BN` 层中的参数**
 2. PyTorch 中标准的张量形状就是 `(batch_size, channels, h, w)`
    1. 因此，PyTorch 中的 **批量** 指的就是 **图片数量**！
