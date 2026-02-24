@@ -4,9 +4,10 @@ from d2l import torch as d2l
 from tools import Animator
 from torch import nn
 import torch
-from tools.cache_load_datasets import *
+import tools.cache_load_datasets as cache_load
 import pandas as pd
 import torchvision
+import os
 
 # 设置 matplotlib 交互式后端（解决 PyCharm 静态渲染问题）
 plt.switch_backend('TkAgg')
@@ -82,14 +83,14 @@ def train_ch13(net, train_iter, test_iter, loss, trainer, num_epochs,
           f'{str(devices)}')
 
 #@save
-DATA_HUB['banana-detection'] = (
+cache_load.DATA_HUB['banana-detection'] = (
     d2l.DATA_URL + 'banana-detection.zip',
     '5de26c8fce5ccdea9f91267273464dc968d20d72')
 
 #@save
 def read_data_bananas(is_train=True):
     """读取香蕉检测数据集中的图像和标签"""
-    data_dir = download_extract('banana-detection')
+    data_dir = cache_load.download_extract('banana-detection')
     # 训练就用 bananas_train，推理就用 bananas_val
     csv_fname = os.path.join(data_dir, 'bananas_train' if is_train
                              else 'bananas_val', 'label.csv')
@@ -131,3 +132,139 @@ def load_data_bananas(batch_size):
                                            batch_size)
     return train_iter, val_iter
 
+
+'''
+使用一个数据集还真是【三件套】
+1. 读取数据集 read
+2. 构造 Dataset class
+3. 构造 train_iter 和 test_iter【返回训练 / 测试所需的一个 batch】
+但是在构造这 3 者的过程中，可能会用到很多很多辅助函数！
+'''
+cache_load.DATA_HUB['voc2012'] = (cache_load.DATA_URL + 'VOCtrainval_11-May-2012.tar',
+                           '4e443f8a2eca6b1dac8a6c57641b67dd40621a49')
+
+#@save
+def read_voc_images(voc_dir, is_train=True):
+    """读取所有VOC图像并标注"""
+    txt_fname = os.path.join(voc_dir, 'ImageSets', 'Segmentation',
+                             'train.txt' if is_train else 'val.txt')
+    mode = torchvision.io.image.ImageReadMode.RGB
+    with open(txt_fname, 'r') as f:
+        images = f.read().split()
+    features, labels = [], []
+    # 语义分割中，样本和标签都是图片！
+    # 不过样本是 jpg 图片，而标签是 png 图片
+    # （因为 jpg 图片会压缩，而 png 图片不会压缩。如果标签被压缩，那就很难学习了！）
+    # 另外，这里还遵循了 VOC 数据集格式（因为这个格式经典而且好用）
+    for i, fname in enumerate(images):
+        features.append(torchvision.io.read_image(os.path.join(
+            voc_dir, 'JPEGImages', f'{fname}.jpg')))
+        labels.append(torchvision.io.read_image(os.path.join(
+            voc_dir, 'SegmentationClass' ,f'{fname}.png'), mode))
+    return features, labels
+
+# 接下来，我们列举RGB颜色值和类名。
+#@save
+VOC_COLORMAP = [[0, 0, 0], [128, 0, 0], [0, 128, 0], [128, 128, 0],
+                [0, 0, 128], [128, 0, 128], [0, 128, 128], [128, 128, 128],
+                [64, 0, 0], [192, 0, 0], [64, 128, 0], [192, 128, 0],
+                [64, 0, 128], [192, 0, 128], [64, 128, 128], [192, 128, 128],
+                [0, 64, 0], [128, 64, 0], [0, 192, 0], [128, 192, 0],
+                [0, 64, 128]]
+
+#@save
+VOC_CLASSES = ['background', 'aeroplane', 'bicycle', 'bird', 'boat',
+               'bottle', 'bus', 'car', 'cat', 'chair', 'cow',
+               'diningtable', 'dog', 'horse', 'motorbike', 'person',
+               'potted plant', 'sheep', 'sofa', 'train', 'tv/monitor']
+
+
+#@save
+def voc_colormap2label():
+    """构建从RGB到VOC类别索引的映射"""
+    # 这里其实就是打一个 RGB 表，将 RGB 三位数视为 256 进制的数！便于快速查找！
+    colormap2label = torch.zeros(256 ** 3, dtype=torch.long)
+    for i, colormap in enumerate(VOC_COLORMAP):
+        colormap2label[
+            (colormap[0] * 256 + colormap[1]) * 256 + colormap[2]] = i
+    return colormap2label
+
+
+#@save
+def voc_label_indices(colormap, colormap2label):
+    """将VOC标签中的RGB值映射到它们的类别索引"""
+    # 利用前面打的 RGB 表来查找 VOC 类别！
+    # 一个 colormap 张量就是一张标签图片！
+    # 将颜色维度放在最后面
+    colormap = colormap.permute(1, 2, 0).numpy().astype('int32')
+    idx = ((colormap[:, :, 0] * 256 + colormap[:, :, 1]) * 256
+           + colormap[:, :, 2])
+    return colormap2label[idx]
+
+# 预处理数据
+#@save
+def voc_rand_crop(feature, label, height, width):
+    """随机裁剪特征和标签图像"""
+    # 这里不能 resize，必须 crop
+    # resize 会改变像素比例，标签边缘可能失真
+    # crop 保持原始分辨率，不拉伸变形，保留细节，同时还可以做数据增强
+    # 图片中的【拉伸】是通过【插值（插入像素值）】来实现的！
+    '''先获取一个剪裁的窗口，然后利用这个窗口对【特征】和【标签】同时剪裁'''
+    rect = torchvision.transforms.RandomCrop.get_params(
+        feature, (height, width))
+    feature = torchvision.transforms.functional.crop(feature, *rect)
+    label = torchvision.transforms.functional.crop(label, *rect)
+    return feature, label
+
+# 自定义语义分割数据集类
+#@save
+class VOCSegDataset(torch.utils.data.Dataset):
+    """一个用于加载VOC数据集的自定义数据集"""
+
+    def __init__(self, is_train, crop_size, voc_dir):
+        self.transform = torchvision.transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        # 这里的 mean 和 std 都是从 ImageNet 相关模型上抄下来的，
+        # 由于我们想用基于 ImageNet 预训练的模型，所以必须这样初始化
+        # 以发挥预训练模型的威力！
+        self.crop_size = crop_size
+        features, labels = read_voc_images(voc_dir, is_train=is_train)
+        # features 需要做归一化；但是 labels 不需要做归一化，也不能做归一化，因为要将 label 看作 256 进制数 
+        self.features = [self.normalize_image(feature)
+                         for feature in self.filter(features)]
+        self.labels = self.filter(labels)
+        self.colormap2label = voc_colormap2label()
+        print('read ' + str(len(self.features)) + ' examples')
+
+    def normalize_image(self, img):
+        return self.transform(img.float() / 255)
+
+    def filter(self, imgs):
+        '''要求原图的尺寸大于剪裁后留下的尺寸；如果小于，那就直接舍去！'''
+        return [img for img in imgs if (
+            img.shape[1] >= self.crop_size[0] and
+            img.shape[2] >= self.crop_size[1])]
+
+    def __getitem__(self, idx):
+        feature, label = voc_rand_crop(self.features[idx], self.labels[idx],
+                                       *self.crop_size)
+        # 这里 self.crop_size 就是一个元组，不是元组列表！
+        # 返回【特征图】和【类别索引】，居然不是返回【类别图片】
+        return (feature, voc_label_indices(label, self.colormap2label))
+
+    def __len__(self):
+        return len(self.features)
+
+#@save
+def load_data_voc(batch_size, crop_size):
+    """加载VOC语义分割数据集"""
+    voc_dir = cache_load.download_extract('voc2012', os.path.join(
+        'VOCdevkit', 'VOC2012'))
+    num_workers = d2l.get_dataloader_workers()
+    train_iter = torch.utils.data.DataLoader(
+        VOCSegDataset(True, crop_size, voc_dir), batch_size,
+        shuffle=True, drop_last=True, num_workers=num_workers)
+    test_iter = torch.utils.data.DataLoader(
+        VOCSegDataset(False, crop_size, voc_dir), batch_size,
+        drop_last=True, num_workers=num_workers)
+    return train_iter, test_iter

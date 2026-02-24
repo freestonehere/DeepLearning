@@ -122,7 +122,7 @@ data
 |   ├── banana.jpg（通过 https://github.com/d2l-ai/d2l-en/blob/master/img/banana.jpg 下载）
 |   ├── catdog.jpg（通过 https://raw.githubusercontent.com/d2l-ai/d2l-en/master/img/catdog.jpg）
 |   └── cat1.jpg（通过 https://github.com/d2l-ai/d2l-zh/blob/master/img/cat1.jpg 下载）
-├── VOCtrainval_11-May-2012 （通过 36.SegmentData.py 代码下载）
+├── VOCtrainval_11-May-2012 （通过 36-SegmentData.py 代码下载）
 ├── kaggle_house_pred_test.csv （ 通过 15-combine-01.py 代码下载 ）
 └── kaggle_house_pred_train.csv （ 通过 15-combine-01.py 代码下载 ）
 ```
