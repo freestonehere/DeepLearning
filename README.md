@@ -109,6 +109,7 @@ pip install d2l==0.17.0
 - 和中文版对标一下
   - `19` 超参数优化的课程在 [实用机器学习](https://www.bilibili.com/video/BV1FM4y1c7yG/?spm_id_from=333.1387.list.card_archive.click&vd_source=774b39ad34e11aca38975d06f9a32cdb) 里面！
   - `21` 推荐系统的课程在 哪里？（没找到，到时候就看看网页版的讲解和 `mxnet` 代码吧！）
+  - 反正有 AI 辅助，到时候 `mxnet` 有不懂的 API 可以问一下 AI 和 PyTorch 中的哪个 API 很像！
 
 |序号|名称|
 |:--|:---|
