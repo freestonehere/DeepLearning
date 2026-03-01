@@ -1,5 +1,6 @@
 # Tips | 一些小任务
 ## 一、可以学一学【窗口动画】和【读取图片】要怎么写代码
+### （一）、从 [38-FCN.py](38-FCN.py) 中学习
 - 未删减的代码在 [38-FCN.py](38-FCN.py) 中
 - 下面这段代码生成的窗口正好够用（正好没有多余的窗口）
 ```python
@@ -38,6 +39,37 @@ for i in range(n):
 d2l.show_images(imgs[::3] + imgs[1::3] + imgs[2::3], 3, n, scale=2)
 fig = plt.gcf()
 ch13.set_title(fig, '打印几张图片，看看效果')
+
+plt.show()
+```
+
+<br><br>
+
+### （二）、从 [40-seq-model.py](40-seq-model.py) 中学习
+- 下面这段代码生成的窗口也是正好够用（正好没有多余的窗口）
+```python
+import matplotlib.pyplot as plt # 用于画图
+import tools.plot as plot
+
+
+T = 1000  # 总共产生 1000 个点
+time = torch.arange(1, T + 1, dtype=torch.float32)
+x = torch.sin(0.01 * time) + torch.normal(0, 0.2, (T,))
+plot.plot(time, [x], 'time', 'x', xlim=[1, 1000], figsize=(6, 3))
+fig = plt.gcf()
+ch13.set_title(fig, '第一步：展示人造数据')
+
+net = get_net()
+train(net, train_iter, loss, 5, 0.01)
+
+onestep_preds = net(features)
+plt.figure() # 新开一块画布，否则这里会覆盖前面已经画好的内容！
+plot.plot([time, time[tau:]],
+         [x.detach().numpy(), onestep_preds.detach().numpy()], 'time',
+         'x', legend=['data', '1-step preds'], xlim=[1, 1000],
+         figsize=(6, 3))
+fig = plt.gcf()
+ch13.set_title(fig, '第二步：展示训练过程')
 
 plt.show()
 ```
