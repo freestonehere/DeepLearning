@@ -59,7 +59,7 @@ $$p(x_t \mid x_1, \dots, x_{t-1}) \approx p\big(x_t \mid f(x_1, \dots, x_{t-1})\
 
 在概率建模中，我们通常希望最大化观测数据的似然。对于自回归模型，给定历史 $x_{<t}$，观测到 $x_t$ 的条件概率为 $p(x_t \mid x_{<t})$。假设我们采用参数化模型 $p_\theta(x_t \mid x_{<t})$，则整个序列的似然为
 
-$$p_{\theta}(\bf{x}) = \prod_{t} p_{\theta}(x_t \mid x_{<t})$$
+$$p_{\theta} (\bf{x}) = \prod_{t} p_{\theta} (x_t \mid x_{<t})$$
 
 最大化这个似然等价于最小化负对数似然（NLL）：
 
