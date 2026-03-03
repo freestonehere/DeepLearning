@@ -71,7 +71,7 @@ $$-\log p_\theta(\mathbf{x}) = -\sum_t \log p_\theta(x_t \mid x_{<t})$$
 
 $$p_\theta(x_t \mid x_{<t}) = \mathcal{N}\big(x_t \mid \mu_\theta(x_{<t}), \sigma^2\big)$$
 
-其中 $\mu_\theta(x_{<t})$ 是某个参数化函数（例如我们的神经网络 $f$），$\sigma^2$ 是固定的方差（与输入无关）。那么，单步的负对数似然为：
+其中 $\mu_\theta(x_{<t})$ 是某个参数化函数（例如我们的神经网络 $f$）， $\sigma^2$ 是固定的方差（与输入无关）。那么，单步的负对数似然为：
 
 $$-\log p_\theta(x_t \mid x_{<t}) = \frac{1}{2\sigma^2} \big(x_t - \mu_\theta(x_{<t})\big)^2 + \frac{1}{2}\log(2\pi\sigma^2)$$
 
