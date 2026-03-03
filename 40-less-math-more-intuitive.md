@@ -63,19 +63,19 @@ $$p_{\theta} (\bf{x}) = \prod_{t} p_{\theta} (x_t \mid x_{\lt t})$$
 
 最大化这个似然等价于最小化负对数似然（NLL）：
 
-$$-\log p_\theta(\mathbf{x}) = -\sum_t \log p_\theta(x_t \mid x_{<t})$$
+$$-\log p_\theta(\mathbf{x}) = -\sum_t \log p_\theta(x_t \mid x_{\lt t})$$
 
 ##### 将 MSE 与高斯分布联系
 
 如果我们假设条件分布 $p_\theta(x_t \mid x_{<t})$ 是高斯分布，且其均值由历史决定，方差为常数，即
 
-$$p_\theta(x_t \mid x_{<t}) = \mathcal{N}\big(x_t \mid \mu_\theta(x_{<t}), \sigma^2\big)$$
+$$p_\theta(x_t \mid x_{\lt t}) = \mathcal{N}\big(x_t \mid \mu_\theta(x_{\lt t}), \sigma^2\big)$$
 
 其中 $\mu_\theta(x_{<t})$ 是某个参数化函数（例如我们的神经网络 $f$）， $\sigma^2$ 是固定的方差（与输入无关）。那么，单步的负对数似然为：
 
-$$-\log p_\theta(x_t \mid x_{<t}) = \frac{1}{2\sigma^2} \big(x_t - \mu_\theta(x_{<t})\big)^2 + \frac{1}{2}\log(2\pi\sigma^2)$$
+$$-\log p_\theta(x_t \mid x_{\lt t}) = \frac{1}{2\sigma^2} \big(x_t - \mu_\theta(x_{\lt t})\big)^2 + \frac{1}{2}\log(2\pi\sigma^2)$$
 
-忽略常数项 $\frac{1}{2}\log(2\pi\sigma^2)$ 和缩放因子 $\frac{1}{2\sigma^2}$，最小化负对数似然就等价于最小化 $(x_t - \mu_\theta(x_{<t}))^2$ —— 这正是均方误差！
+忽略常数项 $\frac{1}{2}\log(2\pi\sigma^2)$ 和缩放因子 $\frac{1}{2\sigma^2}$，最小化负对数似然就等价于最小化 $(x_t - \mu_\theta(x_{<\lt }))^2$ —— 这正是均方误差！
 
 ##### 代码中的体现
 
@@ -119,16 +119,16 @@ $$\ell = (y - \hat{y})^2,$$
 
 学过统计学的同学都知道：**最小化均方误差的最优解，就是条件期望**。也就是说，如果模型容量足够大、训练数据无限，那么训练好的网络 $f$ 会逼近：
 
-$$f(x_{<t}) \approx \mathbb{E}[x_t \mid x_{<t}]$$
+$$f(x_{\lt t}) \approx \mathbb{E}[x_t \mid x_{\lt t}]$$
 
 这个条件期望 $\mathbb{E}[x_t \mid x_{<t}]$ 正是 $x_t$ 在给定历史后的分布均值。
 
 #### 从概率建模看
 我们之前提到，使用 MSE 损失等价于假设：
 
-$$x_t \mid x_{<t} \sim \mathcal{N}\big(\mu(x_{<t}), \sigma^2\big),$$
+$$x_t \mid x_{\lt t} \sim \mathcal{N}\big(\mu(x_{\lt t}), \sigma^2\big),$$
 
-其中 $\mu(x_{<t})$ 就是我们要学习的函数。此时，**条件分布的均值 $\mu(x_{<t})$ 就是 $\mathbb{E}[x_t \mid x_{<t}]$**。而网络 $f$ 直接输出这个 $\mu$，所以 $f$ 的输出既是“预测结果”（因为我们就用这个值作为对 $x_t$ 的猜测），也是“均值”（因为它是条件分布的均值参数）。
+其中 $\mu(x_{\lt t})$ 就是我们要学习的函数。此时，**条件分布的均值 $\mu(x_{\lt t})$ 就是 $\mathbb{E}[x_t \mid x_{\lt t}]$**。而网络 $f$ 直接输出这个 $\mu$，所以 $f$ 的输出既是“预测结果”（因为我们就用这个值作为对 $x_t$ 的猜测），也是“均值”（因为它是条件分布的均值参数）。
 
 ### 3. 直观理解
 
