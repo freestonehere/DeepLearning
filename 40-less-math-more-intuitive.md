@@ -38,14 +38,12 @@ $$
 - **输入 `X` 的构造**：  
   代码中使用了一个 **马尔可夫假设**（阶数 `tau=4`），即假设当前值只依赖于最近的 `tau` 个历史值，而不依赖更早的观测。因此，条件概率简化为  
   
-  $$
-  p(x_t \mid x_1, \dots, x_{t-1}) \approx p(x_t \mid x_{t-\tau}, \dots, x_{t-1})。
-  $$
+  $$p(x_t \mid x_1, \dots, x_{t-1}) \approx p(x_t \mid x_{t-\tau}, \dots, x_{t-1})$$
 
   训练时，每个样本 `X` 是一个形状为 `(batch_size, tau)` 的张量，每一行对应一个时间步的最近 `tau` 个历史值：  
   
   $$
-  X[i,:] = [x_{i}, x_{i+1}, \dots, x_{i+\tau-1}] \quad (\text{这里索引需对照代码中的滑动窗口})。
+  X[i,:] = [x_{i}, x_{i+1}, \dots, x_{i+\tau-1}] \quad (\text{这里索引需对照代码中的滑动窗口})
   $$
 
   对应的标签 `y[i]` 是下一个时刻的真实值 $x_{i+\tau}$ 。
@@ -54,7 +52,7 @@ $$
   `net` 是一个多层感知机，输入维度为 `tau`，输出维度为 1。对于每个输入样本（历史窗口），网络输出一个标量值，记作 $\hat{x}_t$。这个 $\hat{x}_t$ 就是函数 $f$ 在给定历史上的输出，即  
   
   $$
-  f(x_{t-\tau}, \dots, x_{t-1}) = \hat{x}_t。
+  f(x_{t-\tau}, \dots, x_{t-1}) = \hat{x}_t
   $$
 
   在代码中，`net(X)` 一次性计算整个批次的输出，其结果就是所有样本对应的预测值。
@@ -68,13 +66,13 @@ $$
 在概率建模中，我们通常希望最大化观测数据的似然。对于自回归模型，给定历史 $x_{<t}$，观测到 $x_t$ 的条件概率为 $p(x_t \mid x_{<t})$。假设我们采用参数化模型 $p_\theta(x_t \mid x_{<t})$，则整个序列的似然为
 
 $$
-p_\theta(\mathbf{x}) = \prod_{t} p_\theta(x_t \mid x_{<t})。
+p_\theta(\mathbf{x}) = \prod_{t} p_\theta(x_t \mid x_{<t})
 $$
 
 最大化这个似然等价于最小化负对数似然（NLL）：
 
 $$
--\log p_\theta(\mathbf{x}) = -\sum_t \log p_\theta(x_t \mid x_{<t})。
+-\log p_\theta(\mathbf{x}) = -\sum_t \log p_\theta(x_t \mid x_{<t})
 $$
 
 ##### 将 MSE 与高斯分布联系
@@ -82,13 +80,13 @@ $$
 如果我们假设条件分布 $p_\theta(x_t \mid x_{<t})$ 是高斯分布，且其均值由历史决定，方差为常数，即
 
 $$
-p_\theta(x_t \mid x_{<t}) = \mathcal{N}\big(x_t \mid \mu_\theta(x_{<t}), \sigma^2\big)，
+p_\theta(x_t \mid x_{<t}) = \mathcal{N}\big(x_t \mid \mu_\theta(x_{<t}), \sigma^2\big)
 $$
 
 其中 $\mu_\theta(x_{<t})$ 是某个参数化函数（例如我们的神经网络 $f$），$\sigma^2$ 是固定的方差（与输入无关）。那么，单步的负对数似然为：
 
 $$
--\log p_\theta(x_t \mid x_{<t}) = \frac{1}{2\sigma^2} \big(x_t - \mu_\theta(x_{<t})\big)^2 + \frac{1}{2}\log(2\pi\sigma^2)。
+-\log p_\theta(x_t \mid x_{<t}) = \frac{1}{2\sigma^2} \big(x_t - \mu_\theta(x_{<t})\big)^2 + \frac{1}{2}\log(2\pi\sigma^2)
 $$
 
 忽略常数项 $\frac{1}{2}\log(2\pi\sigma^2)$ 和缩放因子 $\frac{1}{2\sigma^2}$，最小化负对数似然就等价于最小化 $(x_t - \mu_\theta(x_{<t}))^2$ —— 这正是均方误差！
@@ -98,7 +96,7 @@ $$
 - 代码使用的损失函数是 `nn.MSELoss(reduction='none')`，它对每个样本计算平方误差：  
   
   $$
-  \ell = (y - \text{net}(X))^2。
+  \ell = (y - \text{net}(X))^2
   $$
 
   然后，在训练循环中，我们对一个批次的损失求和并反向传播：`l.sum().backward()`。这相当于最小化所有样本的平方误差之和，即最小化整个训练集的 MSE。
@@ -140,7 +138,7 @@ $$
 学过统计学的同学都知道：**最小化均方误差的最优解，就是条件期望**。也就是说，如果模型容量足够大、训练数据无限，那么训练好的网络 $f$ 会逼近：
 
 $$
-f(x_{<t}) \approx \mathbb{E}[x_t \mid x_{<t}]。
+f(x_{<t}) \approx \mathbb{E}[x_t \mid x_{<t}]
 $$
 
 这个条件期望 $\mathbb{E}[x_t \mid x_{<t}]$ 正是 $x_t$ 在给定历史后的分布均值。
