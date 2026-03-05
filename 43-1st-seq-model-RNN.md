@@ -469,8 +469,8 @@ print(f'\nY.shape, state_new.shape: {Y.shape, state_new.shape}')
         - ~~在 `从零实现` 的版本中，也可以看出来！<br>从 **最后一个隐变量** 到 **输出** 也就是简单的矩阵乘法 `最后一个隐变量 @ W_hq = Y`~~
         - ~~又因为 `Y.shape = (num_steps * batch_size, 词表长度)`，`W_hq.shape = (num_hiddens, num_outputs) = (num_hiddens, 词表长度)`~~
         - ~~⇒ 所以，**从零实现**的版本中，`最后一个隐变量的维度是 (num_steps * batch_size, num_hiddens)`~~
-        - **简洁实现**中，最后一个隐变量的维度确实是 `(num_steps, batch_size, num_hiddens)`；但是**从零实现**中，每个时间步上隐变量的维度都是 `(batch_size, num_hiddens)`，和 `num_steps` 无关！
-          - 这是因为【每个时间步上隐变量】只负责产生【该时间步上的输出 `(batch_size, 词表长度)`】，也就是 `隐变量 @ W_hq = (batch_size, 词表长度)`。
+        - **简洁实现**中，【最后一层网络中所有时间步上的隐变量】的维度确实是 `(num_steps, batch_size, num_hiddens)`；但是**从零实现**中，每个时间步上隐变量的维度都是 `(batch_size, num_hiddens)`，和 `num_steps` 无关！
+          - 这是因为 **从零实现中**【每个时间步上的隐变量】只负责产生【该时间步上的输出 `(batch_size, 词表长度)`】，也就是 `隐变量 @ W_hq = (batch_size, 词表长度)`。
           - 将【所有时间步上的输出】拼接起来，才得到【最终的输出 `(num_steps * batch_size, 词表长度)`】
           - ⇒ **简洁实现** 不是 **从零实现** 的简单封装！至于 `nn.RNN` 源码是怎么写的，就先别深究了！
         - **本代码简洁实现**的版本中，`最后一个隐变量的维度是 (num_steps, batch_size, num_hiddens)`
