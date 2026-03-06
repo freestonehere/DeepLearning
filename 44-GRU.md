@@ -14,8 +14,8 @@
 - $$\bf Z_t=\sigma(X_tW_{xz}+H_{t-1}W_{hz}+b_z)$$
 
 1. 经过 $\sigma()$， $\bf R_t$ 和 $\bf Z_t$ 的值都在 $0-1$ 之间。
-2. $\bf R_t$，$\bf Z_t$ 和 $\bf H_t$ 形状相同。
-3. $\bf{R}$ 是重置门，$\bf Z$ 是更新门，$\bf H$ 是隐藏状态
+2. $\bf R_t$， $\bf Z_t$ 和 $\bf H_t$ 形状相同。
+3. $\bf{R}$ 是重置门， $\bf Z$ 是更新门， $\bf H$ 是隐藏状态
 #### 1、和 `RNN` 做个比较（下面公式是 `RNN` 的内容）
 - 更新隐藏状态： $\bf h_t=\phi(W_{hh}h_{t-1}+W_{hx}x_{t-1}+b_h)$
   - 去掉了 $\bf W_{hh}h_{t-1}$ 就是 MLP
