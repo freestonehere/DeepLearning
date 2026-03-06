@@ -10,9 +10,9 @@
 
 #### 1、门
 - 这三个门的计算方式和 `RNN` 中计算隐变量的方式**完全一样**！
-    -  $${\bf I}_t=\sigma({\bf X}_t{\bf W}_{xi}+{\bf H}_{t-1}{\bf W}_{hi}+{\bf b}_i) ~ ~ ~\text{input，输入门}$$
-    -  $${\bf F}_t=\sigma({\bf X}_t{\bf W}_{xf}+{\bf H}_{t-1}{\bf W}_{hf}+{\bf b}_f) ~ ~\text{forget，遗忘门}$$
-    -  $${\bf O}_t=\sigma({\bf X}_t{\bf W}_{xo}+{\bf H}_{t-1}{\bf W}_{ho}+{\bf b}_o) ~ ~ ~\text{output，输出门}$$
+    -  $${\bf I_t=\sigma( X_t W_{xi}+ H_{t-1} W_{hi}+ b_i)} ~ ~ \text{input，输入门}$$
+    -  $${\bf F}_t=\sigma({\bf X}_t{\bf W}_{xf}+{\bf H}_{t-1}{\bf W}_{hf}+{\bf b}_f) ~ \text{forget，遗忘门}$$
+    -  $${\bf O}_t=\sigma({\bf X}_t{\bf W}_{xo}+{\bf H}_{t-1}{\bf W}_{ho}+{\bf b}_o) ~ ~ \text{output，输出门}$$
 <br>
 
 #### 2、候选记忆单元
