@@ -28,7 +28,7 @@
 
 |`RNN` 图解|`GRU` 图解|
 |:--------|:---------|
-|![循环神经网络的概念](https://zh-v2.d2l.ai/_images/rnn.svg)|![关于门的介绍](https://zh-v2.d2l.ai/_images/gru-2.svg)|
+|![循环神经网络的概念](https://zh-v2.d2l.ai/_images/rnn.svg)|![更新真正的隐变量](https://zh-v2.d2l.ai/_images/gru-3.svg)|
 
 1. $\bf H_{t-1}$ 和 $\bf X_t$ 共同作用
    1. `RNN` 得到 $\bf H_t$ （该时间步的隐藏状态）
