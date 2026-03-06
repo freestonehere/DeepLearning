@@ -10,9 +10,9 @@
 
 #### 1、门
 - 这三个门的计算方式和 `RNN` 中计算隐变量的方式**完全一样**！
-    -  $${\bf I}_t=\sigma({\bf X}_t{\bf W}_{xi}+{\bf H}_{t-1}{\bf W}_{hi}+{\bf b}_i) \text{~ ~ ~input，输入门}$$
-    -  $${\bf F}_t=\sigma({\bf X}_t{\bf W}_{xf}+{\bf H}_{t-1}{\bf W}_{hf}+{\bf b}_f) \text{~ ~forget，遗忘门}$$
-    -  $${\bf O}_t=\sigma({\bf X}_t{\bf W}_{xo}+{\bf H}_{t-1}{\bf W}_{ho}+{\bf b}_o) \text{~ ~ ~output，输出门}$$
+    -  $${\bf I}_t=\sigma({\bf X}_t{\bf W}_{xi}+{\bf H}_{t-1}{\bf W}_{hi}+{\bf b}_i) ~ ~ ~\text{input，输入门}$$
+    -  $${\bf F}_t=\sigma({\bf X}_t{\bf W}_{xf}+{\bf H}_{t-1}{\bf W}_{hf}+{\bf b}_f) ~ ~\text{forget，遗忘门}$$
+    -  $${\bf O}_t=\sigma({\bf X}_t{\bf W}_{xo}+{\bf H}_{t-1}{\bf W}_{ho}+{\bf b}_o) ~ ~ ~\text{output，输出门}$$
 <br>
 
 #### 2、候选记忆单元
@@ -76,7 +76,7 @@ $${\bf C}_t={\bf F}_t⊙{\bf C}_{t-1}+{\bf I}_t⊙{\bf\~C}_t$$
 - 和 `GRU` 中 **隐状态** 的计算方式不同 $\bf H_t = Z_t ⊙ X_{t-1} + (1-Z_t) \~H_t$
   - `GRU` 中的两个权重 $\bf Z_t$ 和 $\bf 1 - Z_t$ ：如果一个增大，那么另一个权重就必然减小！
   - 但是 `LSTM` 不同，`LSTM` 中的两个权重 $\bf F_t$ 和 $\bf I_t$ 独立，二者可以同时增大，也可以同时减小！
-- 两者相加， ${\bf C}_{t-1}$ 和 ${\bf\~C}_t$ 都经过非线性变换，在 $0-1$ 之间，所以 ${\bf C}_{t}$ 在 $0-2$ 之间
+- 两者相加， $\bf C_{t-1}$ 和 $\bf\~C_t$ 都经过非线性变换，在 $0-1$ 之间，所以 $\bf C_{t}$ 在 $0-2$ 之间
   - 仔细想来， $\bf C$ 没有经过非线性，可以叠加出比较大的值 
 <br>
 
