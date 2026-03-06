@@ -7,6 +7,8 @@ import random
 from torch import nn as nn
 from tools import Animator
 import math
+from torch.nn import functional as F
+
 
 cache_load.DATA_HUB['time_machine'] = (cache_load.DATA_URL + 'timemachine.txt',
                                 '090b5e7e70c295757f55df93cb0a180b9691891a')
@@ -206,6 +208,27 @@ def load_data_time_machine(batch_size, num_steps,  #@save
         batch_size, num_steps, use_random_iter, max_tokens)
     return data_iter, data_iter.vocab
 
+# 定义了所有需要的函数之后，接下来我们创建一个类来包装这些函数，并存储从零开始实现的循环神经网络模型的参数。
+class RNNModelScratch: #@save
+    """从零开始实现的循环神经网络模型"""
+    def __init__(self, vocab_size, num_hiddens, device,
+                 get_params, init_state, forward_fn):
+        self.vocab_size, self.num_hiddens = vocab_size, num_hiddens
+        self.params = get_params(vocab_size, num_hiddens, device)
+        self.init_state, self.forward_fn = init_state, forward_fn
+
+    # 可以定义 forward() 函数，也可以定义 __call__() 函数
+    def __call__(self, X, state):
+        '''独热编码的位置：① 在数据预处理阶段 (train_iter 迭代器中)，是没有进行独热编码的；
+        ② 而是在网络中，先对 train_iter 迭代器出来的数据 (batch_size, num_steps)
+        做独热编码 (num_steps * batch_size, 词表大小)，
+        然后再进行前向计算'''
+        X = F.one_hot(X.T, self.vocab_size).type(torch.float32)
+        return self.forward_fn(X, state, self.params)
+
+    def begin_state(self, batch_size, device):
+        return self.init_state(batch_size, self.num_hiddens, device)
+
 
 # 预测
 def predict_ch8(prefix, num_preds, net, vocab, device):  #@save
@@ -330,3 +353,51 @@ def train_ch8(net, train_iter, vocab, lr, num_epochs, device,
     print(predict('time traveller'))
     print(predict('traveller'))
 
+
+# 注意，nn.RNN 只包含隐藏的循环层，我们还需要创建一个单独的输出层。
+#@save
+class RNNModel(nn.Module):
+    """循环神经网络模型（
+    ① 【从零实现】用上面的 class RNNModelScratch
+    ② 【简洁实现】用这个 class RNNModel）"""
+    def __init__(self, rnn_layer, vocab_size, **kwargs):
+        super(RNNModel, self).__init__(**kwargs)
+        self.rnn = rnn_layer
+        self.vocab_size = vocab_size
+        self.num_hiddens = self.rnn.hidden_size
+        # 如果 RNN 是双向的（之后将介绍），num_directions 应该是 2，否则应该是 1
+        if not self.rnn.bidirectional:
+            self.num_directions = 1
+            self.linear = nn.Linear(self.num_hiddens, self.vocab_size)
+        else:
+            self.num_directions = 2
+            self.linear = nn.Linear(self.num_hiddens * 2, self.vocab_size)
+
+    def forward(self, inputs, state):
+        '''① inputs 张量形状是 (num_steps, batch_size, 词表长度)；
+        ② 最开始的时候，初始化隐藏层状态 state (1, num_steps * batch_size, num_hiddens)；
+        而且，【从零实现】和【简洁实现】一样，隐藏层张量形状在整个更新过程中保持不变！'''
+        X = F.one_hot(inputs.T.long(), self.vocab_size)
+        X = X.to(torch.float32)
+        Y, state = self.rnn(X, state)
+        '''全连接层首先将 Y 的形状改为 (时间步数 * 批量大小, 隐藏单元数)
+        它的输出形状是 (时间步数 * 批量大小, 词表大小)。'''
+        # RNN 中的输出不需要激活函数！
+        output = self.linear(Y.reshape((-1, Y.shape[-1])))
+        return output, state
+
+    def begin_state(self, device, batch_size=1):
+        if not isinstance(self.rnn, nn.LSTM):
+            # nn.GRU 以张量作为隐状态
+            return  torch.zeros((self.num_directions * self.rnn.num_layers,
+                                 batch_size, self.num_hiddens),
+                                device=device)
+        else:
+            # nn.LSTM 以元组作为隐状态
+            return (torch.zeros((
+                self.num_directions * self.rnn.num_layers,
+                batch_size, self.num_hiddens), device=device),
+                    torch.zeros((
+                        self.num_directions * self.rnn.num_layers,
+                        batch_size, self.num_hiddens), device=device))
+        
