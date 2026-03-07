@@ -290,7 +290,7 @@ def train_epoch_ch8(net, train_iter, loss, updater, device, use_random_iter):
             '''关于 GRU 和 LSTM 的代码以后再看！
             反正 RNN 本身是不需要 detach_() 的，因为 RNN 一直在更新隐藏层的参数！'''
             if isinstance(net, nn.Module) and not isinstance(state, tuple):
-                # state 对于 nn.GRU 是个张量
+                # state 对于 nn.GRU 和 nn.RNN 是个张量
                 state.detach_()
             else:
                 # state 对于 nn.LSTM 或对于我们从零开始实现的模型是个张量
