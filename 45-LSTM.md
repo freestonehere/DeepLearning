@@ -209,52 +209,52 @@ travelleryou can show black is white by argument said filby
 [官网 doc - class torch.nn.LSTM](https://docs.pytorch.org/docs/stable/generated/torch.nn.LSTM.html#torch.nn.LSTM)
 
 #### 1、符号定义
-- $N$：batch size
-- $L$：sequence length
-- $D$：双向为 2，单向为 1
-- $H_{in}$：input_size
-- $H_{cell}$：hidden_size
-- $H_{out}$：proj_size > 0 时为 proj_size，否则为 hidden_size
+- $N$ ：batch size
+- $L$ ：sequence length
+- $D$ ：双向为 2，单向为 1
+- $H_{in}$ ：input_size
+- $H_{cell}$ ：hidden_size
+- $H_{out}$ ：proj_size > 0 时为 proj_size，否则为 hidden_size
 
 #### 2、输入 Inputs
 输入为：`input, (h_0, c_0)`
 
 ##### (1)、input
-- 无批次：$(L, H_{in})$
-- `batch_first=False`：$(L, N, H_{in})$
-- `batch_first=True`：$(N, L, H_{in})$
+- 无批次： $(L, H_{in})$
+- `batch_first=False`： $(L, N, H_{in})$
+- `batch_first=True`： $(N, L, H_{in})$
 
 支持可变长填充序列，可使用 `pack_padded_sequence` 或 `pack_sequence`。
 
 ##### (2)、h_0（初始隐藏状态）
-- 无批次：$(D \times num\_layers, H_{out})$
-- 有批次：$(D \times num\_layers, N, H_{out})$
+- 无批次： $(D \times num\_layers, H_{out})$
+- 有批次： $(D \times num\_layers, N, H_{out})$
 未提供时默认为全 0。
 
 ##### (3)、c_0（初始单元状态）
-- 无批次：$(D \times num\_layers, H_{cell})$
-- 有批次：$(D \times num\_layers, N, H_{cell})$
+- 无批次： $(D \times num\_layers, H_{cell})$
+- 有批次： $(D \times num\_layers, N, H_{cell})$
 未提供时默认为全 0。
 
 #### 3、输出 Outputs
 输出为：`output, (h_n, c_n)`
 
 ##### (1)、output
-- 无批次：$(L, D \times H_{out})$
-- `batch_first=False`：$(L, N, D \times H_{out})$
-- `batch_first=True`：$(N, L, D \times H_{out})$
+- 无批次： $(L, D \times H_{out})$
+- `batch_first=False`： $(L, N, D \times H_{out})$
+- `batch_first=True`： $(N, L, D \times H_{out})$
 
 为 LSTM 最后一层每个时间步的输出；双向时为前向与反向隐藏状态拼接。
 
 ##### (2)、h_n（最终隐藏状态）
-- 无批次：$(D \times num\_layers, H_{out})$
-- 有批次：$(D \times num\_layers, N, H_{out})$
+- 无批次： $(D \times num\_layers, H_{out})$
+- 有批次： $(D \times num\_layers, N, H_{out})$
 
 包含所有层、所有方向最后时刻隐藏状态，双向为前向与反向最终状态拼接。
 
 ##### (4)、c_n（最终单元状态）
-- 无批次：$(D \times num\_layers, H_{cell})$
-- 有批次：$(D \times num\_layers, N, H_{cell})$
+- 无批次： $(D \times num\_layers, H_{cell})$
+- 有批次： $(D \times num\_layers, N, H_{cell})$
 
 包含所有层、所有方向最后时刻单元状态，双向为前向与反向最终状态拼接。
 
@@ -266,37 +266,37 @@ travelleryou can show black is white by argument said filby
 ### （三）、`nn.GRU` API
 [官网 doc - class torch.nn.GRU](https://docs.pytorch.org/docs/stable/generated/torch.nn.GRU.html#torch.nn.GRU)
 #### 1、符号说明
-- $N$：batch size
-- $L$：sequence length
-- $D$：bidirectional=True 时为 2，否则为 1
-- $H_{in}$：input_size
-- $H_{out}$：hidden_size
+- $N$ ：batch size
+- $L$ ：sequence length
+- $D$ ：bidirectional=True 时为 2，否则为 1
+- $H_{in}$ ：input_size
+- $H_{out}$ ：hidden_size
 
 #### 2、Inputs: input, h_0
 ##### (1)、input
-- 无批次：$(L, H_{in})$
-- batch_first=False：$(L, N, H_{in})$
-- batch_first=True：$(N, L, H_{in})$
+- 无批次： $(L, H_{in})$
+- batch_first=False： $(L, N, H_{in})$
+- batch_first=True： $(N, L, H_{in})$
 
 支持可变长序列，可使用 `torch.nn.utils.rnn.pack_padded_sequence` 或 `torch.nn.utils.rnn.pack_sequence`。
 
 ##### (2)、h_0
-- 无批次：$(D \times num\_layers, H_{out})$
-- 有批次：$(D \times num\_layers, N, H_{out})$
+- 无批次： $(D \times num\_layers, H_{out})$
+- 有批次： $(D \times num\_layers, N, H_{out})$
 
 未提供时默认为全 0。
 
 #### 3、Outputs: output, h_n
 ##### (1)、output
-- 无批次：$(L, D \times H_{out})$
-- batch_first=False：$(L, N, D \times H_{out})$
-- batch_first=True：$(N, L, D \times H_{out})$
+- 无批次： $(L, D \times H_{out})$
+- batch_first=False： $(L, N, D \times H_{out})$
+- batch_first=True： $(N, L, D \times H_{out})$
 
 为 GRU 最后一层每个时间步的输出特征；若输入为 `PackedSequence`，输出也为 `PackedSequence`。
 
 ##### (2)、h_n
-- 无批次：$(D \times num\_layers, H_{out})$
-- 有批次：$(D \times num\_layers, N, H_{out})$
+- 无批次： $(D \times num\_layers, H_{out})$
+- 有批次： $(D \times num\_layers, N, H_{out})$
 
 为序列最终的隐藏状态。
 
@@ -313,37 +313,37 @@ travelleryou can show black is white by argument said filby
     |含义|既然是 `output` 了，<br>自然是 **最后一层神经网络**<br>（的所有时间步）。|既然 `output` 是最后一层神经网络了，<br>那么 `h_n` 自然是 **最后一个时间步**<br>（的所有层神经网络）|
 
 #### 1、符号说明
-- $N$：batch size
-- $L$：sequence length
-- $D$：bidirectional=True 时为 2，否则为 1
-- $H_{in}$：input_size
-- $H_{out}$：hidden_size
+- $N$ ：batch size
+- $L$ ：sequence length
+- $D$ ：bidirectional=True 时为 2，否则为 1
+- $H_{in}$ ：input_size
+- $H_{out}$ ：hidden_size
 
 #### 2、Inputs: input, hx
 ##### (1)、input
-- 无批次：$(L, H_{in})$
-- batch_first=False：$(L, N, H_{in})$
-- batch_first=True：$(N, L, H_{in})$
+- 无批次： $(L, H_{in})$
+- batch_first=False： $(L, N, H_{in})$
+- batch_first=True： $(N, L, H_{in})$
 
 支持可变长序列，可通过 `torch.nn.utils.rnn.pack_padded_sequence()` 或 `torch.nn.utils.rnn.pack_sequence()` 处理。
 
 ##### (2)、hx
-- 无批次：$(D \times num\_layers, H_{out})$
-- 有批次：$(D \times num\_layers, N, H_{out})$
+- 无批次： $(D \times num\_layers, H_{out})$
+- 有批次： $(D \times num\_layers, N, H_{out})$
 
 未提供时默认为全 0。
 
 #### 3、Outputs: output, h_n
 ##### (1)、output
-- 无批次：$(L, D \times H_{out})$
-- batch_first=False：$(L, N, D \times H_{out})$
-- batch_first=True：$(N, L, D \times H_{out})$
+- 无批次： $(L, D \times H_{out})$
+- batch_first=False： $(L, N, D \times H_{out})$
+- batch_first=True： $(N, L, D \times H_{out})$
 
 为 RNN 最后一层每个时间步的输出特征；若输入为 `PackedSequence`，输出也为 `PackedSequence`。
 
 ##### (2)、h_n
-- 无批次：$(D \times num\_layers, H_{out})$
-- 有批次：$(D \times num\_layers, N, H_{out})$
+- 无批次： $(D \times num\_layers, H_{out})$
+- 有批次： $(D \times num\_layers, N, H_{out})$
 
 表示批次中每个样本的最终隐藏状态。
 
