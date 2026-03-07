@@ -36,6 +36,38 @@ Y: tensor([[ 19, 111,   0,   5,   3,   1,   1,   1],
 Y的有效长度: tensor([5, 5])
 ```
 ### （一）、理解代码
+```python
+'''构建机器翻译数据集的执行流程'''
+def load_data_nmt(batch_size, num_steps, num_examples=600):
+    """返回翻译数据集的【迭代器】和【词表】"""
+    # 1. 读入，预处理
+    text = preprocess_nmt(read_data_nmt())
+    # 2. 分词（返回二维列表，列表内容是【文本 token】）
+    source, target = tokenize_nmt(text, num_examples)
+    # 3. 构建词表
+    # 注意 nlp.Vocab 词表中：<unk> 是 0，自然 ⇒ <pad> 就是 1
+    src_vocab = nlp.Vocab(source, min_freq=2,
+                          reserved_tokens=['<pad>', '<bos>', '<eos>'])
+    tgt_vocab = nlp.Vocab(target, min_freq=2,
+                          reserved_tokens=['<pad>', '<bos>', '<eos>'])
+    # 4. 将【二维 token 列表】转换为【二维数字列表】，同时返回每行文本的有效长度
+    src_array, src_valid_len = build_array_nmt(source, src_vocab, num_steps)
+    tgt_array, tgt_valid_len = build_array_nmt(target, tgt_vocab, num_steps)
+    data_arrays = (src_array, src_valid_len, tgt_array, tgt_valid_len)
+    data_iter = d2l.load_array(data_arrays, batch_size)
+    '''data_iter 每次返回【batch_size 行文本】和【对应文本行的有效长度】'''
+    return data_iter, src_vocab, tgt_vocab
+```
+1. 数据集三件套
+   1. 读入原始数据
+   2. ~~定义 `class Dataset` 数据集类~~
+      1. 这里虽然没有显式定义数据集类 `class Dataset`
+      2. 但是将原始数据处理成了【通过索引来直接使用】的数据！
+      3. 具体过程就是
+         1. 分词（得到【token 列表】）
+         2. 构建 **词表**
+         3. 通过 **词表** 将【token 列表】转化成【数字索引列表】
+   3. 通过 `class DataLoader`，返回一个 `batch` 的内容
 
 <br>
 
