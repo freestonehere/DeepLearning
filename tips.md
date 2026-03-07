@@ -75,3 +75,28 @@ plt.show()
 ```
 
 <br><br>
+
+### （三）、绘制直方图（详见 [48-MTDataset.py](48-MTDataset.py)）
+```python
+#@save
+def show_list_len_pair_hist(legend, xlabel, ylabel, xlist, ylist):
+    """绘制列表长度对的直方图"""
+    d2l.set_figsize()
+    _, _, patches = d2l.plt.hist(
+        [[len(l) for l in xlist], [len(l) for l in ylist]])
+    d2l.plt.xlabel(xlabel)
+    d2l.plt.ylabel(ylabel)
+    for patch in patches[1].patches:
+        patch.set_hatch('/')
+    d2l.plt.legend(legend)
+```
+
+<br><br>
+
+## 二、读入图片的代码 `read`
+
+<br><br>
+
+## 三、读入文本的代码 `read`
+
+<br><br>
