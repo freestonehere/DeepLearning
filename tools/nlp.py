@@ -1,14 +1,6 @@
 import re
 import tools.cache_load_datasets as cache_load
-from d2l import torch as d2l
-import collections
-import torch
-import random
-from torch import nn as nn
-from tools import Animator
-import math
 from torch.nn import functional as F
-
 
 cache_load.DATA_HUB['time_machine'] = (cache_load.DATA_URL + 'timemachine.txt',
                                 '090b5e7e70c295757f55df93cb0a180b9691891a')
@@ -38,6 +30,8 @@ def tokenize(lines, token='word'):  #@save
     else:
         print('错误：未知词元类型：' + token)
         # 这里的 + 应该是指字符串拼接。Python 语法真的挺灵活的！
+
+import collections
 
 def count_corpus(tokens):  #@save
     """统计词元的频率"""
@@ -122,6 +116,8 @@ def load_corpus_time_machine(max_tokens=-1):  #@save
     return corpus, vocab
     # 返回索引列表和词表对象
 
+import torch
+import random
 
 # 随机采样
 '''为什么不采用 40-seq-model.py 中的采样方式？那里其实没听懂！'''
@@ -253,7 +249,7 @@ def predict_ch8(prefix, num_preds, net, vocab, device):  #@save
     ② 然后通过 argmax 获得最有可能的 char 的数值索引'''
     return ''.join([vocab.idx_to_token[i] for i in outputs])
 
-
+from torch import nn as nn
 
 # 梯度剪裁
 def grad_clipping(net, theta):  #@save
@@ -274,6 +270,9 @@ def grad_clipping(net, theta):  #@save
         for param in params:
             param.grad[:] *= theta / norm
 
+
+from d2l import torch as d2l
+import math
 
 # 训练
 #@save
@@ -326,6 +325,8 @@ def train_epoch_ch8(net, train_iter, loss, updater, device, use_random_iter):
             updater(batch_size=1)
         metric.add(l * y.numel(), y.numel())
     return math.exp(metric[0] / metric[1]), metric[1] / timer.stop()
+
+from tools import Animator
 
 #@save
 def train_ch8(net, train_iter, vocab, lr, num_epochs, device,
@@ -400,4 +401,151 @@ class RNNModel(nn.Module):
                     torch.zeros((
                         self.num_directions * self.rnn.num_layers,
                         batch_size, self.num_hiddens), device=device))
-        
+
+import os
+
+cache_load.DATA_HUB['fra-eng'] = (cache_load.DATA_URL + 'fra-eng.zip',
+                           '94646ad1522d915e7b0f9296181140edcf86a4f5')
+
+#@save
+def read_data_nmt():
+    """载入“英语－法语”数据集（返回一个包含换行符的长字符串）"""
+    data_dir = cache_load.download_extract('fra-eng')
+    with open(os.path.join(data_dir, 'fra.txt'), 'r',
+             encoding='utf-8') as f:
+        return f.read()
+
+
+#@save
+def preprocess_nmt(text):
+    """预处理“英语－法语”数据集（依然返回一个长字符串）"""
+    def no_space(char, prev_char):
+        return char in set(',.!?') and prev_char != ' '
+
+    # 使用空格替换不间断空格
+    # 使用小写字母替换大写字母
+    # 全角空格，半角空格，用小写字母替换大写字母
+    text = text.replace('\u202f', ' ').replace('\xa0', ' ').lower()
+    # 在单词和标点符号之间插入空格（便于把标点符号也做成一个 token，用于翻译）
+    out = [' ' + char if i > 0 and no_space(char, text[i - 1]) else char
+           for i, char in enumerate(text)]
+    return ''.join(out)
+
+# 词元化
+#@save
+def tokenize_nmt(text, num_examples=None):
+    """词元化 “英语－法语” 数据数据集（返回二维 token 列表 (行数, num_steps) ）
+    （将一个长字符串切割为文本 token ，分别返回英语列表和法语列表）。"""
+    source, target = [], []
+    # 原来文本 text 本身是不换行的！
+    for i, line in enumerate(text.split('\n')):
+        if num_examples and i > num_examples:
+            break
+        parts = line.split('\t')
+        if len(parts) == 2:
+            # 注意 .split(' ') 方法返回的是一个 list！
+            source.append(parts[0].split(' '))
+            target.append(parts[1].split(' '))
+    return source, target
+
+
+# 加载数据集
+#@save
+def truncate_pad(line, num_steps, padding_token):
+    """截断或填充文本序列（使得每行文本为定长）。
+    输入 line 是【一行文本】转化成的【一个数值列表】；
+    num_steps 就是【每行文本的固定长度】！"""
+    if len(line) > num_steps:
+        return line[:num_steps] # 截断
+    return line + [padding_token] * (num_steps - len(line)) # 填充
+
+
+#@save
+def build_array_nmt(lines, vocab, num_steps):
+    """将【二维 token 列表】转换为【二维数字列表】，同时返回每行文本的有效长度。
+
+    输入 lines 是 list of list of token （二维列表）。
+    返回的 array 是二维张量 (行数, num_steps)，
+    其中 num_steps 是每行文本的固定长度"""
+
+    lines = [vocab[l] for l in lines]
+    lines = [l + [vocab['<eos>']] for l in lines]
+
+    '''lines 经过预处理后，成为 list of list of number_index （二维列表），
+    并且每行末尾还有一个 <end of sentence>'''
+    array = torch.tensor([truncate_pad(
+        l, num_steps, vocab['<pad>']) for l in lines])
+    # for l in lines ⇒ 意味着 l 是【一行文本】转化成的【一个数值列表】
+    '''array 是二维张量 (行数, num_steps)。
+    【行数】就是读入的原始字符串的行数；
+    【num_steps】是指每行文本固定长度为 num_steps.'''
+    # 没错，Python 整型也可以和 torch.tensor 进行广播！
+    # 按行求和，得到每行文本的 valid_len！
+    valid_len = (array != vocab['<pad>']).type(torch.int32).sum(1)
+    return array, valid_len
+
+
+# 训练模型
+#@save
+def load_data_nmt(batch_size, num_steps, num_examples=600):
+    """返回翻译数据集的【迭代器】和【词表】"""
+    # 读入，预处理
+    text = preprocess_nmt(read_data_nmt())
+    # 分词（返回二维列表，列表内容是【文本 token】）
+    source, target = tokenize_nmt(text, num_examples)
+    # 构建词表
+    # 注意 nlp.Vocab 词表中：<unk> 是 0，自然 ⇒ <pad> 就是 1
+    src_vocab = Vocab(source, min_freq=2,
+                          reserved_tokens=['<pad>', '<bos>', '<eos>'])
+    tgt_vocab = Vocab(target, min_freq=2,
+                          reserved_tokens=['<pad>', '<bos>', '<eos>'])
+    # 将【二维 token 列表】转换为【二维数字列表】，同时返回每行文本的有效长度
+    src_array, src_valid_len = build_array_nmt(source, src_vocab, num_steps)
+    tgt_array, tgt_valid_len = build_array_nmt(target, tgt_vocab, num_steps)
+    data_arrays = (src_array, src_valid_len, tgt_array, tgt_valid_len)
+    data_iter = d2l.load_array(data_arrays, batch_size)
+    '''data_iter 每次返回【batch_size 行文本】和【对应文本行的有效长度】'''
+    return data_iter, src_vocab, tgt_vocab
+
+
+'''编码器接口'''
+#@save
+class Encoder(nn.Module):
+    """编码器-解码器架构的基本编码器接口"""
+    def __init__(self, **kwargs):
+        super(Encoder, self).__init__(**kwargs)
+
+    def forward(self, X, *args):
+        raise NotImplementedError
+
+
+'''解码器接口'''
+#@save
+class Decoder(nn.Module):
+    """编码器-解码器架构的基本解码器接口"""
+    def __init__(self, **kwargs):
+        super(Decoder, self).__init__(**kwargs)
+
+    def init_state(self, enc_outputs, *args):
+        raise NotImplementedError
+
+    def forward(self, X, state):
+        raise NotImplementedError
+
+
+'''编码器-解码器接口'''
+#@save
+class EncoderDecoder(nn.Module):
+    """编码器-解码器架构的基类"""
+    def __init__(self, encoder, decoder, **kwargs):
+        super(EncoderDecoder, self).__init__(**kwargs)
+        self.encoder = encoder
+        self.decoder = decoder
+
+    def forward(self, enc_X, dec_X, *args):
+        # 从编码器的【输入】得到编码器的【输出】
+        enc_outputs = self.encoder(enc_X, *args)
+        # 从编码器的【输出】得到解码器的【状态】
+        dec_state = self.decoder.init_state(enc_outputs, *args)
+        # 从解码器的【状态】和解码器的【输入】得到解码器的【输出】
+        return self.decoder(dec_X, dec_state)
