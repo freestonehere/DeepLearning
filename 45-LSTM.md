@@ -307,6 +307,8 @@ travelleryou can show black is white by argument said filby
 
 - **发现：`nn.GRU` 和 `nn.RNN` 在输入和输出的张量形状上是完全一样的！！！**
 - 补充关于高级 API 的理解（照搬 [43-1st-seq-model-RNN.md](43-1st-seq-model-RNN.md) 中的内容）
+  - `output` 和 `h_n` 确实 **都是隐藏状态**，不过这两个隐藏状态所在位置不同而已！
+  - 下面分别是 `output` 和 `h_n` 中隐藏状态所在的位置！
     |       |高级 API 输出的 `output`|高级 API 输出的 `h_n`|
     |:------|:----------------------|:-------------------|
     |张量形状|`(num_steps, batch_size, num_hiddens)`|`(1, batch_size, num_hiddens)`|
