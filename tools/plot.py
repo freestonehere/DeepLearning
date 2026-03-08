@@ -4,6 +4,7 @@
 
 
 import matplotlib.pyplot as plt
+from d2l import torch as d2l
 
 # 修复后的版本：移除 Jupyter 特有的 SVG 显示设置
 def use_svg_display():
@@ -65,3 +66,23 @@ def plot(X, Y=None, xlabel=None, ylabel=None, legend=None, xlim=None,
             axes.plot(y, fmt)
     set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend)
 
+
+#@save
+def show_heatmaps(matrices, xlabel, ylabel, titles=None, figsize=(2.5, 2.5),
+                  cmap='Reds'):
+    """显示矩阵热图"""
+    plt.switch_backend('TkAgg')
+    # 不用 d2l.use_svg_display() 因为 use_svg_display 是 Jupyter 依赖！
+    num_rows, num_cols = matrices.shape[0], matrices.shape[1]
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=figsize,
+                             sharex=True, sharey=True, squeeze=False)
+    for i, (row_axes, row_matrices) in enumerate(zip(axes, matrices)):
+        for j, (ax, matrix) in enumerate(zip(row_axes, row_matrices)):
+            pcm = ax.imshow(matrix.detach().numpy(), cmap=cmap)
+            if i == num_rows - 1:
+                ax.set_xlabel(xlabel)
+            if j == 0:
+                ax.set_ylabel(ylabel)
+            if titles:
+                ax.set_title(titles[j])
+    fig.colorbar(pcm, ax=axes, shrink=0.6)
