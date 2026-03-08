@@ -106,7 +106,7 @@ class NWKernelRegression(nn.Module):
         另外，真奇妙，单参数统一缩放居然就能拟合一个比较复杂的非线性函数！'''
 
     def forward(self, queries, keys, values):
-        '''① 本来，输入的 queries 是一维张量 (n_train) 或 (n_test)。
+        '''① 本来，输入的 queries 是一维张量 (n_train) 或 (n_test)，也就是 (查询个数)。
         repeat_interleave() 后， queries 成为二维矩阵张量，
         行内都是相同数值，但是行间是不同数值！
         
