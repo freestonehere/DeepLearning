@@ -107,10 +107,10 @@ class NWKernelRegression(nn.Module):
 
     def forward(self, queries, keys, values):
         '''① 本来，输入的 queries 是一维张量 (n_train) 或 (n_test)，也就是 (查询个数)。
-        repeat_interleave() 后， queries 成为二维矩阵张量，
-        行内都是相同数值，但是行间是不同数值！
+        repeat_interleave() 后， queries 成为二维矩阵张量 (查询个数, 键值对个数)，
+        二维 queries 行内都是相同数值，但是行间是不同数值！
         
-        ② keys 和 values 本身就是二维张量：
+        ② keys 和 values 本身就是二维张量 (查询个数, 键值对个数)：
         它们行内是不同数值，但是行间对应位置是相同数值！
         
         ③ 返回一维张量 (查询个数)'''
