@@ -549,3 +549,23 @@ class EncoderDecoder(nn.Module):
         dec_state = self.decoder.init_state(enc_outputs, *args)
         # 从解码器的【状态】和解码器的【输入】得到解码器的【输出】
         return self.decoder(dec_X, dec_state)
+
+
+# 损失函数
+#@save
+def sequence_mask(X, valid_len, value=0):
+    """在序列中屏蔽不相关的项。
+    输入 X 是二维数值张量 (行数, num_steps)，其中 num_steps 是每行文本的固定长度；
+    valid_len 是一维张量 (行数)，表示第 i 行文本的有效长度是 valid_len[i]。"""
+    maxlen = X.size(1)
+    mask = torch.arange((maxlen), dtype=torch.float32,
+                        device=X.device)[None, :] < valid_len[:, None]
+    '''上面这行代码 ① [None, :] 升维成 (1, maxlen)
+    ② [:, None] 升维成 (行数, 1)
+    ③ 然后通过广播 mask = (行数, maxlen)，每个元素的值为布尔值！
+    若 X 中 i 行 j 列的字符是有效字符，那么 mask[i, j] = True ；否则 maxk[i, j] = False'''
+    # 感觉这样的骚操作（一维通过广播成为二维）在【画锚框】的代码里见过（详见 33-CV-AnchorBox.py ）
+    '''虽然 mask 中每个元素的值为布尔值，但是 X 中每个元素的值还是【数值】！
+    另外，下面这行代码还用到了布尔索引！'''
+    X[~mask] = value
+    return X
