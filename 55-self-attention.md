@@ -51,7 +51,7 @@
 - 位置编码将位置信息注入到输入里
   - 假设长度为 $n$ 的序列是 ${\bf X}\in\mathbb R^{n \times d}$ ，那么使用位置编码矩阵 ${\bf P}\in \mathbb R^{n \times d}$ 来输出 ${\bf X} + {\bf P}$ 作为自编码输入
 - $\bf P$ 的元素如下计算：
-  $p_{i,2j}=\sin\left({i\over 10000^{2j/d}}\right)$ ，$p_{i,2j+1}=\cos\left({i\over10000^{2j/d}}\right)$
+  $p_{i,2j}=\sin\left({i\over 10000^{2j/d}}\right)$ ， $p_{i,2j+1}=\cos\left({i\over10000^{2j/d}}\right)$
   - $i$ 表示一行文本里面第 $i$ 个 `token`，`d` 表示一个 `token` 的维数！
   - 奇数列和偶数列分别是周期不同的正弦余弦函数
   - 列越靠后周期越长
@@ -68,10 +68,12 @@
 
 $$
 \begin{bmatrix}
-    \cos(\delta\omega_j)&\sin(\delta\omega_j)\\-\sin(\delta\omega_j)&\cos(\delta\omega_j)
+    \cos(\delta\omega_j)&\sin(\delta\omega_j) \\
+    -\sin(\delta\omega_j)&\cos(\delta\omega_j)
 \end{bmatrix}
 \begin{bmatrix} 
-    p_{i,2j}\\ p_{i,2j+1}
+    p_{i,2j} \\ 
+    p_{i,2j+1}
 \end{bmatrix} = 
 \begin{bmatrix} 
 p_{i+\delta,2j}\\ p_{i+\delta,2j+1}
