@@ -52,19 +52,19 @@ $f(x)=\sum_{i=1}^nsoftmax\left(-{1\over2}((x-x_i))^2\right)y_i$
 
 **拓展到高维度**
 
-- 假设 query ${\bf q}\in\mathbb R^n$，$m$ 对 key-value $(\bf k_1,v_1),...$，这里 ${\bf k_i}\in\mathbb R^k$，${\bf v_i}\in\mathbb R^v$
+- 假设 query ${\bf q}\in\mathbb R^n$， $m$ 对 key-value $(\bf k_1,v_1),...$ ，这里 ${\bf k_i}\in\mathbb R^k$ ， ${\bf v_i}\in\mathbb R^v$
 - 注意力池化层：
   - $$f({\bf q,(k_1,v_1),...,(k_m,v_m)})=\sum_{i=1}^m\alpha({\bf q,k_i}){\bf v_i}\in\mathbb R^v$$
   - $$\alpha({\bf q,k_i})=softmax(a({\bf q,k_i}))={\exp(a({\bf q,k_i}))\over\sum_{j=1}^m\exp(a({\bf q,k_j}))}\in\mathbb R$$
 <br>
 
 ### （二）、Additive Attention（加性注意力）【向量 `query` 和 `key` 长度不同的情况】
-- 可学参数：${\bf W_k}\in\mathbb R^{h\times k},{\bf W_q}\in\mathbb R^{h\times q},{\bf w_v}\in\mathbb R^h$ <br> $a({\bf k,q})={\bf w_v}^Ttanh({\bf W_kk+W_qq })$
+- 可学参数： ${\bf W_k}\in\mathbb R^{h\times k},{\bf W_q}\in\mathbb R^{h\times q},{\bf w_v}\in\mathbb R^h$ <br> $a({\bf k,q})={\bf w_v}^Ttanh({\bf W_kk+W_qq })$
     - 这里的 $h$ 代表 `hidden_size`！
     - 等价于将 key 和 value 合并起来后放入到一个隐藏层大小为 h 输出大小为1的单隐藏层MLP
     - 输出一个标量
     - $\bf q,k,v$ 可以是不同长度
-- 拓展维度：${\bf Q}\in\mathbb R^{n\times q},\ {\bf K}\in\mathbb R^{m\times k},\ V^{m\times v}$
+- 拓展维度： ${\bf Q}\in\mathbb R^{n\times q},\ {\bf K}\in\mathbb R^{m\times k},\ V^{m\times v}$
   - $a({\bf K,Q})={\bf w_v}^Ttanh({\bf KW_k^T+QW_q^T })$
   - 代码中使用的是 **矩阵 $\bf Q, K$**
   - 而不是 **向量** $\bf q, k$
@@ -73,13 +73,13 @@ $f(x)=\sum_{i=1}^nsoftmax\left(-{1\over2}((x-x_i))^2\right)y_i$
 <br>
 
 ### （三）、Scaled Dot_product Attention（缩放点积注意力）【向量 `query` 和 `key` 长度相同的情况】
-- 如果 query 和 key 都是同样的长度，${\bf q,k_i}\in\mathbb R^d$，那么可以：
+- 如果 query 和 key 都是同样的长度， ${\bf q,k_i}\in\mathbb R^d$ ，那么可以：
         $a({\bf q_i,k})=<{\bf q,k_i}>/\sqrt d$
   - 除以根号 d 使对**向量长度**不敏感
 - 向量化版本
   - ${\bf Q}\in\mathbb R^{n\times d},\ {\bf K}\in\mathbb R^{m\times d},\ V^{m\times v}$
-  - 注意力分数：$a({\bf Q,K})={\bf QK}^T/\sqrt d\in\mathbb R^{n \times m}$
-  - 注意力池化：$f=softmax(a({\bf Q,K})){\bf V}\in\mathbb R^{n \times v}$
+  - 注意力分数： $a({\bf Q,K})={\bf QK}^T/\sqrt d\in\mathbb R^{n \times m}$
+  - 注意力池化： $f=softmax(a({\bf Q,K})){\bf V}\in\mathbb R^{n \times v}$
   - 有 $n$ 个 query， $m$ 个 key，每个 key 有 $v$ 个 value
 - 和 **Additive Attention** 相比，**Scaled Dot_product Attention** 实现简单（超参数少）
   - 但坏处就是：因为你的东西比较少，所以学到的东西可能会比较少。
