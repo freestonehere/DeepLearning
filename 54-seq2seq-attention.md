@@ -9,6 +9,7 @@
 ### （二）、加入注意力
 ![加入注意力机制的 encoder-decoder](https://zh-v2.d2l.ai/_images/seq2seq-attention-details.svg)
 
+- **直观理解：这是一个【注意力池化层】！**
 - **只在解码器加入注意力机制，编码器不需要注意力机制**
 - 编码器对每次词的输出作为 key 和 value（这里他们是同一个东西），即第 $i$ 个词在 RNN 里的输出。
 - 解码器 RNN 对上一个词的输出是 query
