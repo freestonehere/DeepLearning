@@ -76,7 +76,8 @@ $$
     p_{i,2j+1}
 \end{bmatrix} = 
 \begin{bmatrix} 
-p_{i+\delta,2j}\\ p_{i+\delta,2j+1}
+p_{i+\delta,2j} \\ 
+p_{i+\delta,2j+1}
 \end{bmatrix}
 $$
 
