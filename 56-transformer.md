@@ -510,7 +510,7 @@ output = m(input)
 ```
 <br><br>
 
-### （三）、`TransformerEncoder` 中的 Embedding 层为什么要乘以 `嵌入层维数长度的平方根`（即便有这些数据，我也不理解！先放一放吧！）
+### （三）、`TransformerEncoder` 中的 Embedding 层为什么要乘以 `嵌入层维数长度的平方根`（即便有这些数据，我也不理解！先放一放吧！）<br>不过有一点可以确定：这个缩放是为了让 `位置编码的尺度` 和 `词向量的尺度一致`！
 ```python
 class TransformerEncoder(nlp.Encoder):
     """Transformer 编码器"""
