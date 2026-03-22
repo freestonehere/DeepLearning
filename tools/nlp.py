@@ -805,3 +805,25 @@ def predict_seq2seq(net, src_sentence, src_vocab, tgt_vocab, num_steps,
             break
         output_seq.append(pred)
     return ' '.join(tgt_vocab.to_tokens(output_seq)), attention_weight_seq
+
+# 对预测序列的评估
+def bleu(pred_seq, label_seq, k):  #@save
+    """计算 BLEU （输入 pred_seq 和 label_seq 都是一个字符串！）"""
+    pred_tokens, label_tokens = pred_seq.split(' '), label_seq.split(' ')
+    len_pred, len_label = len(pred_tokens), len(label_tokens)
+    score = math.exp(min(0, 1 - len_label / len_pred))
+    # 计算 1~k 阶 n-gram 得分
+    for n in range(1, k + 1):
+        # label_subs 字典的 key 是 str 类型；value 是 int 类型！
+        '''下面这种算法思想其实并不难，但是有点绕！很容易懵！'''
+        num_matches, label_subs = 0, collections.defaultdict(int)
+        for i in range(len_label - n + 1):
+            '''计算 label_tokens 中【所有 n-gram 语法】的出现次数'''
+            label_subs[' '.join(label_tokens[i: i + n])] += 1
+        for i in range(len_pred - n + 1):
+            '''数 pred_tokens 中出现了多少次【label_tokens 中的 n-gram 语法】！'''
+            if label_subs[' '.join(pred_tokens[i: i + n])] > 0:
+                num_matches += 1
+                label_subs[' '.join(pred_tokens[i: i + n])] -= 1
+        score *= math.pow(num_matches / (len_pred - n + 1), math.pow(0.5, n))
+    return score
