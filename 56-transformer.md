@@ -23,6 +23,7 @@
 - 头 $i$ 的输出 ${\bf h}_i=f({\bf W}_i^{(q)}{\bf q},{\bf W}_i^{(k)}{\bf k},{\bf W}_i^{(v)}{\bf v})$
 - 输出的可学习参数 ${\bf W}_o\in\mathbb R^{p_o\times hp_v}$
 - 多头注意力的输出
+  
   $$
   {\bf W_o}
   \begin{bmatrix}
