@@ -30,7 +30,8 @@
   {\bf h}_1 \\ 
   \vdots \\ 
   {\bf h}_h
-  \end{bmatrix}\in\mathbb R^{p_o}
+  \end{bmatrix}
+  \in\mathbb R^{p_o}
   $$
 
 ```python
