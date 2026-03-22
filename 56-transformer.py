@@ -8,7 +8,8 @@ import tools.plot as plot
 import matplotlib.pyplot as plt # 用于画图
 import pandas as pd
 
-'''基于位置的前馈网络（李沐老师说就是 MLP ，其实没理解这句话）'''
+'''基于位置的前馈网络（李沐老师说就是 MLP 还真是【单隐藏层的 MLP 】）'''
+# 既然就是【单隐藏层的 MLP】，那为什么非要起个新名字呢？肯定有它的道理！
 #@save
 class PositionWiseFFN(nn.Module):
     """基于位置的前馈网络"""
@@ -33,11 +34,12 @@ print('\nffn(torch.ones((2, 3, 4)))[0]:',
 ln = nn.LayerNorm(2)
 bn = nn.BatchNorm1d(2)
 X = torch.tensor([[1, 2], [2, 3]], dtype=torch.float32)
-# 在训练模式下计算X的均值和方差
+# 在训练模式下计算 X 的均值和方差
 print('\nlayer norm:', f'\n{ln(X)}\n', '\nbatch norm:', f'\n{bn(X)}')
 
 
 # 现在可以使用残差连接和层规范化来实现 AddNorm 类。暂退法也被作为正则化方法使用。
+# 残差连接没那么神秘，就是做了一个加法而已，别怵！
 #@save
 class AddNorm(nn.Module):
     """残差连接后进行层规范化"""
@@ -45,6 +47,7 @@ class AddNorm(nn.Module):
         super(AddNorm, self).__init__(**kwargs)
         self.dropout = nn.Dropout(dropout)
         self.ln = nn.LayerNorm(normalized_shape)
+        # nn.LayerNorm([100, 24]) 是什么意思？
 
     def forward(self, X, Y):
         return self.ln(self.dropout(Y) + X)
@@ -76,6 +79,11 @@ class EncoderBlock(nn.Module):
         Y = self.addnorm1(X, self.attention(X, X, X, valid_lens))
         return self.addnorm2(Y, self.ffn(Y))
 
+'''
+张量形状 (batch_size, num_steps, embed_size)
+⇒ 由此可以推出：一个样本其实就是【一行文本】，
+每行文本有 num_steps 个 token ，每个 token 向量维数是 embed_size
+'''
 
 X = torch.ones((2, 100, 24))
 valid_lens = torch.tensor([3, 2])
@@ -91,7 +99,7 @@ print('\nencoder_blk(X, valid_lens).shape',
 
 #@save
 class TransformerEncoder(nlp.Encoder):
-    """Transformer 编码器"""
+    """堆叠了 num_layers 个 TransformerEncoderBlock!"""
     def __init__(self, vocab_size, key_size, query_size, value_size,
                  num_hiddens, norm_shape, ffn_num_input, ffn_num_hiddens,
                  num_heads, num_layers, dropout, use_bias=False, **kwargs):
@@ -107,15 +115,18 @@ class TransformerEncoder(nlp.Encoder):
                              num_heads, dropout, use_bias))
 
     def forward(self, X, valid_lens, *args):
-        # 因为位置编码值在-1和1之间，
-        # 因此嵌入值乘以嵌入维度的平方根进行缩放，
-        # 然后再与位置编码相加。
+        '''因为位置编码值在 -1 和 1 之间，因此嵌入值乘以嵌入维度的平方根进行缩放，
+        然后再与位置编码相加。
+        
+        ① 将嵌入向量的尺度放大，使其与位置编码的尺度处于同一数量级'''
         X = self.pos_encoding(self.embedding(X) * math.sqrt(self.num_hiddens))
         self.attention_weights = [None] * len(self.blks)
         for i, blk in enumerate(self.blks):
             X = blk(X, valid_lens)
             self.attention_weights[
                 i] = blk.attention.attention.attention_weights
+            # 这里 blk.attention.attention.attention_weights
+            # = TransformerEncoderBlock.MultiHeadAttention.DotProductAttention.attention_weights
         return X
 
 
@@ -124,6 +135,27 @@ encoder = TransformerEncoder(
 encoder.eval()
 print('\nencoder(torch.ones((2, 100), dtype=torch.long), valid_lens).shape', 
       f'\n{encoder(torch.ones((2, 100), dtype=torch.long), valid_lens).shape}')
+
+print('\n加入位置编码信息前的词向量\nnn.Embedding(200, 24, torch.ones(2, 100))[0][0]',
+      f'\n{nn.Embedding(200, 24)(torch.ones(2, 100, dtype=torch.long))[0][0]}')
+
+print('\n加入位置编码信息前的词向量均值\nnn.Embedding(200, 24, torch.ones(2, 100))[0][0].mean()',
+      f'\n{nn.Embedding(200, 24)(torch.ones(2, 100, dtype=torch.long))[0][0].mean()}')
+
+print('\n加入位置编码信息前的词向量 L2 范数\nnn.Embedding(200, 24, torch.ones(2, 100))[0][0].norm()',
+      f'\n{nn.Embedding(200, 24)(torch.ones(2, 100, dtype=torch.long))[0][0].norm()}')
+
+print('\n纯位置编码信息\nattn.PositionalEncoding(24, 0.5).P[0][0]',
+      f'\n{attn.PositionalEncoding(24, 0.5).P[0][0]}')
+
+print('\n加入位置编码信息后的词向量\nencoder(torch.ones((2, 100), dtype=torch.long), valid_lens)[0][0]',
+      f'\n{encoder(torch.ones((2, 100), dtype=torch.long), valid_lens)[0][0]}')
+
+print('\n加入位置编码信息后的词向量均值\nencoder(torch.ones((2, 100), dtype=torch.long), valid_lens)[0][0].mean()',
+      f'\n{encoder(torch.ones((2, 100), dtype=torch.long), valid_lens)[0][0].mean()}')
+
+print('\n加入位置编码信息后的词向量的 L2 范数\nencoder(torch.ones((2, 100), dtype=torch.long), valid_lens)[0][0].norm()',
+      f'\n{encoder(torch.ones((2, 100), dtype=torch.long), valid_lens)[0][0].norm()}')
 
 
 '''解码器'''
@@ -146,29 +178,43 @@ class DecoderBlock(nn.Module):
 
     def forward(self, X, state):
         enc_outputs, enc_valid_lens = state[0], state[1]
+        '''state[2] 是解码器各块的状态缓存（预测阶段用）'''
         # 训练阶段，输出序列的所有词元都在同一时间处理，
         # 因此 state[2][self.i] 初始化为 None。
         # 预测阶段，输出序列是通过词元一个接着一个解码的，
         # 因此 state[2][self.i] 包含着直到当前时间步第 i 个块解码的输出表示
         if state[2][self.i] is None:
+            '''训练阶段 / 预测初始步： key_values = 当前输入 X'''
             key_values = X
         else:
+            '''预测阶段后续步：拼接历史 dec_output 和当前输入（缓存上下文）'''
             key_values = torch.cat((state[2][self.i], X), axis=1)
         state[2][self.i] = key_values
+        
         if self.training:
+            '''训练阶段：生成上三角掩码（防止看到未来词元）'''
             batch_size, num_steps, _ = X.shape
-            # dec_valid_lens的开头: (batch_size, num_steps),
+            # dec_valid_lens 的开头: (batch_size, num_steps),
             # 其中每一行是 [1, 2, ..., num_steps]
             dec_valid_lens = torch.arange(
                 1, num_steps + 1, device=X.device).repeat(batch_size, 1)
+            '''最里面的维度复制 1 次；往外走一个维度，复制 batch_size 次！'''
         else:
+            '''预测阶段：逐词解码，无需提前生成掩码（或后续处理）'''
             dec_valid_lens = None
 
-        # 自注意力
+        '''自注意力，其中 dec_valid_lens 用于屏蔽未来词元。
+        【自注意力层的作用】：建模解码器输出序列内部的依赖关系。
+        【原理理解】：以当前输入作为 query ，查询当前输入与之前已生成之间的关系！
+        然后对之前已生成的东西进行加权求和。'''
         X2 = self.attention1(X, key_values, key_values, dec_valid_lens)
         Y = self.addnorm1(X, X2)
-        # 编码器－解码器注意力。
-        # enc_outputs的开头: (batch_size, num_steps, num_hiddens)
+
+        '''编码器－解码器注意力，其中 enc_valid_lens 用于屏蔽 <pad> 。
+        【编码器-解码器自注意力层的作用】：建立解码器输出与编码器输入的关联（即 “对齐”）。
+        【原理理解】：以解码器最新生成的东西作为 query ，查询 decoder 的最新生成与 enc_output 之间的关系！
+        然后对 enc_output 进行加权求和。'''
+        # enc_outputs 的开头: (batch_size, num_steps, num_hiddens)
         Y2 = self.attention2(Y, enc_outputs, enc_outputs, enc_valid_lens)
         Z = self.addnorm2(Y, Y2)
         return self.addnorm3(Z, self.ffn(Z)), state
@@ -183,7 +229,8 @@ print('\ndecoder_blk(X, state)[0].shape',
 # 现在我们构建了由 num_layers 个 DecoderBlock 实例组成的完整的 Transformer 解码器。
 # 最后，通过一个全连接层计算所有 vocab_size 个可能的输出词元的预测值。
 # 解码器的自注意力权重和编码器解码器注意力权重都被存储下来，方便日后可视化的需要。
-class TransformerDecoder(d2l.AttentionDecoder):
+class TransformerDecoder(attn.AttentionDecoder):
+    '''和 TransformerEncoder 一样，堆叠了 num_layers 个 TransformerDecoderBlock'''
     def __init__(self, vocab_size, key_size, query_size, value_size,
                  num_hiddens, norm_shape, ffn_num_input, ffn_num_hiddens,
                  num_heads, num_layers, dropout, **kwargs):
@@ -191,7 +238,7 @@ class TransformerDecoder(d2l.AttentionDecoder):
         self.num_hiddens = num_hiddens
         self.num_layers = num_layers
         self.embedding = nn.Embedding(vocab_size, num_hiddens)
-        self.pos_encoding = d2l.PositionalEncoding(num_hiddens, dropout)
+        self.pos_encoding = attn.PositionalEncoding(num_hiddens, dropout)
         self.blks = nn.Sequential()
         for i in range(num_layers):
             self.blks.add_module("block"+str(i),
@@ -207,6 +254,9 @@ class TransformerDecoder(d2l.AttentionDecoder):
         X = self.pos_encoding(self.embedding(X) * math.sqrt(self.num_hiddens))
         self._attention_weights = [[None] * len(self.blks) for _ in range (2)]
         for i, blk in enumerate(self.blks):
+            '''每个 TransformertDecoderBlock 的【① 输出】和
+            【② state = [enc_output, enc_valid_lens, dec_output + 当前输入（预测时使用）]】
+            都不必保留！'''
             X, state = blk(X, state)
             # 解码器自注意力权重
             self._attention_weights[0][
