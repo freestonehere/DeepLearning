@@ -25,13 +25,11 @@
 - 多头注意力的输出
   
   $$
-  {\bf W_o}
-  \begin{bmatrix}
+  {\bf W_o} \begin{bmatrix}
   {\bf h}_1 \\ 
   \vdots \\ 
   {\bf h}_h
-  \end{bmatrix}
-  \in\mathbb R^{p_o}
+  \end{bmatrix} \in\mathbb R^{p_o}
   $$
 
 ```python
