@@ -24,12 +24,12 @@
 - 输出的可学习参数 ${\bf W}_o\in\mathbb R^{p_o\times hp_v}$
 - 多头注意力的输出
   
-  $$
-  {\bf W_o} \begin{bmatrix}
-  {\bf h}_1 \\ 
-  \vdots \\ 
-  {\bf h}_h \end{bmatrix} \in\mathbb R^{p_o}
-  $$
+$$
+{\bf W_o} \begin{bmatrix}
+{\bf h}_1 \\ 
+\vdots \\ 
+{\bf h}_h \end{bmatrix} \in\mathbb R^{p_o}
+$$
 
 ```python
 # 定义 2 个转置函数
