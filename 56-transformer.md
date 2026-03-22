@@ -28,8 +28,7 @@
   {\bf W_o} \begin{bmatrix}
   {\bf h}_1 \\ 
   \vdots \\ 
-  {\bf h}_h
-  \end{bmatrix} \in\mathbb R^{p_o}
+  {\bf h}_h \end{bmatrix} \in\mathbb R^{p_o}
   $$
 
 ```python
